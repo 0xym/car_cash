@@ -1,0 +1,30 @@
+name: car_cash
+description: A new Flutter project.
+
+version: 0.0.1+1
+
+environment:
+  sdk: ">=2.3.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_launcher_icons: ^0.7.2
+
+flutter_icons:
+  android: true
+  image_path: "./dev_assets/logo8.png"
+  adaptive_icon_background: "#34759d"
+  adaptive_icon_foreground: "./dev_assets/logo8.png"
+
+  # cupertino_icons: ^0.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+
+# The following section is specific to Flutter.
+flutter:
+  uses-material-design: true
+
