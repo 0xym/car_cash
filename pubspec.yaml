@@ -1,7 +1,7 @@
 name: car_cash
 description: A new Flutter project.
 
-version: 0.0.1+1
+version: 0.0.1+2
 
 environment:
   sdk: ">=2.3.0 <3.0.0"
@@ -10,6 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_launcher_icons: ^0.7.2
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.15.8
 
 flutter_icons:
   android: true
