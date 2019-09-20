@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-import '../l10n/localization.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../l10n/localization.dart';
+import '../providers/refuelings.dart';
+import '../model/refueling.dart';
+import '../utils/common.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   static const routeName = '/add-expense';
@@ -9,10 +13,7 @@ class AddExpenseScreen extends StatefulWidget {
   _AddExpenseScreenState createState() => _AddExpenseScreenState();
 }
 
-enum MileageType {
-  Trip,
-  Total
-}
+enum MileageType { Trip, Total }
 
 class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _formKey = GlobalKey<FormState>();
@@ -21,17 +22,51 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _dateFormat = 'yyyy-MM-dd';
   final _timeFormat = 'HH:mm';
   static const _spaceBetween = 10.0;
-  DateTime _timestamp;
+  Refueling _refueling;
+  DateTime _oldTimestamp;
+  bool _validationFailed = false;
+
+  void _saveRefueling() {
+    if (_validateForm()) {
+      _formKey.currentState.save();
+      final refuelings = Provider.of<Refuelings>(context, listen: false);
+      refuelings.changeRefueling(_oldTimestamp, _refueling);
+      Navigator.of(context).pop();
+    }
+  }
+
+  String _validateNumber(String value) {
+    double parsed = toDouble(value);
+    return value.isEmpty ? "Value must be provided" : parsed == null
+        ? 'Must be a valid number'
+        : parsed <= 0.0 ? 'Must be positive' : null;
+  }
+
+  bool _validateForm() {
+    _validationFailed = !_formKey.currentState.validate();
+    return !_validationFailed;
+  }
+
+  void _validateOnEditingIfNeeded(){
+    if (_validationFailed) {
+      _validateForm();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final localization = Localization.of(context);
-    _timestamp = DateTime.now();
+    _refueling = ModalRoute.of(context).settings.arguments ?? Refueling(carId: 0, fuelId: 0, unitType: UnitType.Volume);
+    _oldTimestamp = _refueling.timestamp;
+    _refueling.timestamp ??= DateTime.now();
     return Scaffold(
       appBar: AppBar(
         title: Text(localization.addExpenseTitle),
         actions: <Widget>[
-          IconButton(icon: Icon(Icons.check), onPressed: (){},)
+          IconButton(
+            icon: Icon(Icons.check),
+            onPressed: _saveRefueling,
+          )
         ],
       ),
       body: Form(
@@ -48,69 +83,165 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   children: <Widget>[
                     Expanded(
                         child: TextFormField(
-                      initialValue: '',
+                      initialValue: (_refueling.pricePerUnit ?? '').toString(),
+                      onSaved: (value) =>
+                          _refueling.pricePerUnit = toDouble(value),
+                      validator: _validateNumber,
+                      onEditingComplete: _validateOnEditingIfNeeded,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
                           labelText:
-                              localization.getTranslation('pricePerUnit')),
+                              localization.getTranslation('pricePerUnit'),),
                     )),
-                    SizedBox(width: _spaceBetween,),
-                    Expanded(child:  Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: <Widget>[
-                    Text(_homeCurency),
-                    Checkbox(value: true, onChanged: (_){},),
-                    ],),),
+                    SizedBox(
+                      width: _spaceBetween,
+                    ),
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: <Widget>[
+                          Text(_homeCurency),
+                          Checkbox(
+                            value: true,
+                            onChanged: (_) {},
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: <Widget>[
-                  Expanded(child: TextFormField(initialValue: '', keyboardType: TextInputType.number, decoration: InputDecoration(labelText: localization.tr('quantity')),),),
-                  SizedBox(width: _spaceBetween,),
-                  Expanded(child: 
-                    DropdownButtonFormField<String>(
+                    Expanded(
+                      child: TextFormField(
+                        initialValue: (_refueling.quantity ?? '').toString(),
+                        onSaved: (value) =>
+                            _refueling.quantity = toDouble(value),
+                        validator: _validateNumber,
+                        onEditingComplete: _validateOnEditingIfNeeded,
+
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                            labelText: localization.tr('quantity'),),
+                      ),
+                    ),
+                    SizedBox(
+                      width: _spaceBetween,
+                    ),
+                    Expanded(
+                        child: DropdownButtonFormField<String>(
                       items: [
-                      DropdownMenuItem(value: 'litre',child: Text(localization.tr('litre')),),
-                      DropdownMenuItem(value: 'gallon_us', child: Text(localization.tr('gallon_us')),) ],
-                      onChanged: (_){},
-                      decoration: InputDecoration(labelText: localization.tr('unit')),
-                      value: 'litre', )
-                      )
-                ],),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: <Widget>[
-                    Expanded(child: TextFormField(initialValue: '', keyboardType: TextInputType.number, decoration: InputDecoration(labelText: localization.tr('totalPrice')),),),
-                    SizedBox(width: _spaceBetween,),
-                    Expanded(child: DropdownButtonFormField<int>(items: [
-                      DropdownMenuItem(value: 0, child: Text('Petrol'),),
+                        DropdownMenuItem(
+                          value: 'litre',
+                          child: Text(localization.tr('litre')),
+                        ),
+                        DropdownMenuItem(
+                          value: 'gallon_us',
+                          child: Text(localization.tr('gallon_us')),
+                        )
                       ],
-                      value: 0,
-                      decoration: InputDecoration(labelText: localization.tr('fuelType')),
-                    ),)
-                ],),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: <Widget>[
-                    Expanded(child: TextFormField(initialValue: '', keyboardType: TextInputType.number, decoration: InputDecoration(labelText: '${localization.tr('tripDistance')} ($_distanceUnitString)'),),),
-                    SizedBox(width: _spaceBetween,),
-                    Expanded(child: DropdownButtonFormField<MileageType>(items: [
-                      DropdownMenuItem(value: MileageType.Total, child: Text(localization.tr('mileageTotal')),),
-                      DropdownMenuItem(value: MileageType.Trip, child: Text(localization.tr('mileageTrip')),),
-                      ],
-                      value: MileageType.Trip,
-                      decoration: InputDecoration(labelText: localization.tr('distanceMeasurement')),
+                      onChanged: (_) {},
+                      decoration:
+                          InputDecoration(labelText: localization.tr('unit')),
+                      value: 'litre',
                     ))
                   ],
-                ),  
-                Row(children: <Widget>[
-                  Expanded(child: TextFormField(initialValue: DateFormat(_dateFormat).format(_timestamp), readOnly: true, textAlign: TextAlign.center, 
-                    decoration: InputDecoration(labelText: localization.tr('date')), onTap: () {},),),
-                  SizedBox(width: _spaceBetween,),
-                  Expanded(child: TextFormField(initialValue: DateFormat(_timeFormat).format(_timestamp), readOnly: true, textAlign: TextAlign.center,
-                    decoration: InputDecoration(labelText: localization.tr('time')), onTap: () {},),),
-                ],)
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    Expanded(
+                      child: TextFormField(
+                        initialValue: '',
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                            labelText: localization.tr('totalPrice')),
+                      ),
+                    ),
+                    SizedBox(
+                      width: _spaceBetween,
+                    ),
+                    Expanded(
+                      child: DropdownButtonFormField<int>(
+                        items: [
+                          DropdownMenuItem(
+                            value: 0,
+                            child: Text('Petrol'),
+                          ),
+                        ],
+                        value: 0,
+                        decoration: InputDecoration(
+                            labelText: localization.tr('fuelType')),
+                      ),
+                    )
+                  ],
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    Expanded(
+                      child: TextFormField(
+                        initialValue: (_refueling.displayedMileage ?? '').toString(),
+                        onSaved: (value) => _refueling.setMileage(value),
+                        onEditingComplete: _validateOnEditingIfNeeded,
+                        validator: _validateNumber,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                            labelText:
+                                '${localization.tr('tripDistance')} ($_distanceUnitString)'),
+                      ),
+                    ),
+                    SizedBox(
+                      width: _spaceBetween,
+                    ),
+                    Expanded(
+                        child: DropdownButtonFormField<MileageType>(
+                      items: [
+                        DropdownMenuItem(
+                          value: MileageType.Total,
+                          child: Text(localization.tr('mileageTotal')),
+                        ),
+                        DropdownMenuItem(
+                          value: MileageType.Trip,
+                          child: Text(localization.tr('mileageTrip')),
+                        ),
+                      ],
+                      value: MileageType.Trip,
+                      decoration: InputDecoration(
+                          labelText: localization.tr('distanceMeasurement')),
+                    ))
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: TextFormField(
+                        initialValue: DateFormat(_dateFormat)
+                            .format(_refueling.timestamp),
+                        readOnly: true,
+                        textAlign: TextAlign.center,
+                        decoration:
+                            InputDecoration(labelText: localization.tr('date')),
+                        onTap: () {},
+                      ),
+                    ),
+                    SizedBox(
+                      width: _spaceBetween,
+                    ),
+                    Expanded(
+                      child: TextFormField(
+                        initialValue: DateFormat(_timeFormat)
+                            .format(_refueling.timestamp),
+                        readOnly: true,
+                        textAlign: TextAlign.center,
+                        decoration:
+                            InputDecoration(labelText: localization.tr('time')),
+                        onTap: () {},
+                      ),
+                    ),
+                  ],
+                )
               ],
             ),
           )),
