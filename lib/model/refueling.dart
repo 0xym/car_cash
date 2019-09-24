@@ -1,17 +1,9 @@
-import 'package:car_cash/utils/common.dart';
 import 'package:flutter/foundation.dart';
+import './fuel_unit.dart';
+import '../utils/common.dart';
 
-enum UnitType { Energy, Mass, Volume 
-}
 
-UnitType unitTypeFromString(String unitType) {
-  for (UnitType element in UnitType.values) {
-    if (element.toString() == unitType) {
-      return element;
-    }
-  }
-  return null;
-}
+
  
 class Refueling {
   //keys:
@@ -92,5 +84,17 @@ class Refueling {
 
   String get totalMileageString {
     return "${(displayedMileage).toStringAsFixed(1)} $mileageUnitString";
+  }
+
+  double get privePerUnitInHomeCurrency {
+    return pricePerUnit * exchangeRate;
+  }
+
+  double get totalPriceInHomeCurrenct {
+    return pricePerUnit * quantity * exchangeRate;
+  }
+
+  String get quantityUnitStringId {
+    return 'litreSymbol';
   }
 }

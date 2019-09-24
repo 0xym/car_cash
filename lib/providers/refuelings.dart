@@ -9,7 +9,7 @@ class Refuelings extends ChangeNotifier {
   Refuelings() {
     if (!_dbCreationSubscribed) {
       _dbCreationSubscribed = true;
-      DbAccess.addOnCreateCommand('CREATE TABLE $TABLE_NAME(${Refueling.TIMESTAMP} INT PRIMARY_KEY, ${Refueling.CAR_ID} INT, ${Refueling.EXCHANGE_RATE} REAL, ${Refueling.FUEL_ID} INT, ${Refueling.MILEAGE} INT, ${Refueling.NOTE} TEXT, ${Refueling.PRICE_PER_UNIT} REAL, ${Refueling.QUANTITY} REAL, ${Refueling.UNIT_TYPE} TEXT)');
+      DbAccess.addOnCreateCommand('CREATE TABLE $TABLE_NAME(${Refueling.TIMESTAMP} INT NOT NULL UNIQUE PRIMARY KEY, ${Refueling.CAR_ID} INT, ${Refueling.EXCHANGE_RATE} REAL, ${Refueling.FUEL_ID} INT, ${Refueling.MILEAGE} INT, ${Refueling.NOTE} TEXT, ${Refueling.PRICE_PER_UNIT} REAL, ${Refueling.QUANTITY} REAL, ${Refueling.UNIT_TYPE} TEXT)');
     }
   }
 

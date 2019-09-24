@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../l10n/localization.dart';
 import '../providers/refuelings.dart';
 import '../model/refueling.dart';
+import '../model/fuel_unit.dart';
 import '../utils/common.dart';
 
 class AddExpenseScreen extends StatefulWidget {
@@ -36,10 +37,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   }
 
   String _validateNumber(String value) {
+    final loc = Localization.of(context);
     double parsed = toDouble(value);
-    return value.isEmpty ? "Value must be provided" : parsed == null
-        ? 'Must be a valid number'
-        : parsed <= 0.0 ? 'Must be positive' : null;
+    return value.isEmpty ? loc.tr('errorValueEmpty') : parsed == null
+        ? loc.tr('errorInvalidNumber') 
+        : parsed <= 0.0 ? loc.tr('errorMustBePositive') : null;
   }
 
   bool _validateForm() {
@@ -56,9 +58,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   @override
   Widget build(BuildContext context) {
     final localization = Localization.of(context);
-    _refueling = ModalRoute.of(context).settings.arguments ?? Refueling(carId: 0, fuelId: 0, unitType: UnitType.Volume);
-    _oldTimestamp = _refueling.timestamp;
-    _refueling.timestamp ??= DateTime.now();
+    if (_refueling == null) {
+      _refueling = ModalRoute.of(context).settings.arguments ?? Refueling(carId: 0, fuelId: 0, unitType: UnitType.Volume);
+      _oldTimestamp = _refueling.timestamp;
+      _refueling.timestamp ??= DateTime.now();
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(localization.addExpenseTitle),

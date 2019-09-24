@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../l10n/localization.dart';
 import '../model/refueling.dart';
 import '../screens/add_expense_screen.dart';
 
@@ -13,6 +14,7 @@ class ExpenseItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = Localization.of(context);
     return GestureDetector(
       onTap: () => Navigator.of(context).pushNamed(AddExpenseScreen.routeName, arguments: _refueling),
       child: Card(
@@ -28,7 +30,8 @@ class ExpenseItem extends StatelessWidget {
             Text(_refueling.totalMileageString),
           ],),),
           FittedBox(child: Column(children: <Widget>[
-            Text('${(_refueling.pricePerUnit * _refueling.quantity).toStringAsFixed(2)} $_homeCurency')
+            Text('${(_refueling.totalPriceInHomeCurrenct).toStringAsFixed(2)} $_homeCurency'),
+            Text('${(_refueling.privePerUnitInHomeCurrency).toStringAsFixed(2)} $_homeCurency/${loc.tr(_refueling.quantityUnitStringId)}'),
           ],),)
         ],),
       ),
