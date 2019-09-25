@@ -3,9 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../l10n/localization.dart';
 import '../providers/refuelings.dart';
-import '../model/refueling.dart';
-import '../model/fuel_unit.dart';
 import '../utils/common.dart';
+import '../adapters/refueling_adapter.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   static const routeName = '/add-expense';
@@ -19,11 +18,10 @@ enum MileageType { Trip, Total }
 class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _formKey = GlobalKey<FormState>();
   final _homeCurency = 'PLN';
-  final _distanceUnitString = 'km';
   final _dateFormat = 'yyyy-MM-dd';
   final _timeFormat = 'HH:mm';
   static const _spaceBetween = 10.0;
-  Refueling _refueling;
+  RefuelingAdapter _refuelingAdapter;
   DateTime _oldTimestamp;
   bool _validationFailed = false;
 
@@ -31,7 +29,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     if (_validateForm()) {
       _formKey.currentState.save();
       final refuelings = Provider.of<Refuelings>(context, listen: false);
-      refuelings.changeRefueling(_oldTimestamp, _refueling);
+      refuelings.changeRefueling(_oldTimestamp, _refuelingAdapter.get());
       Navigator.of(context).pop();
     }
   }
@@ -58,10 +56,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   @override
   Widget build(BuildContext context) {
     final localization = Localization.of(context);
-    if (_refueling == null) {
-      _refueling = ModalRoute.of(context).settings.arguments ?? Refueling(carId: 0, fuelId: 0, unitType: UnitType.Volume);
-      _oldTimestamp = _refueling.timestamp;
-      _refueling.timestamp ??= DateTime.now();
+    if (_refuelingAdapter == null) {
+      _refuelingAdapter = ModalRoute.of(context).settings.arguments ?? RefuelingAdapter(context, null);
+      // _refueling = ModalRoute.of(context).settings.arguments ?? Refueling(carId: 0, fuelId: 0);
+      _oldTimestamp = _refuelingAdapter.get().timestamp;
+      _refuelingAdapter.get().timestamp ??= DateTime.now();
     }
     return Scaffold(
       appBar: AppBar(
@@ -87,9 +86,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   children: <Widget>[
                     Expanded(
                         child: TextFormField(
-                      initialValue: (_refueling.pricePerUnit ?? '').toString(),
+                      initialValue: (_refuelingAdapter.get().pricePerUnit ?? '').toString(),
                       onSaved: (value) =>
-                          _refueling.pricePerUnit = toDouble(value),
+                          _refuelingAdapter.get().pricePerUnit = toDouble(value),
                       validator: _validateNumber,
                       onEditingComplete: _validateOnEditingIfNeeded,
                       keyboardType: TextInputType.number,
@@ -119,9 +118,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   children: <Widget>[
                     Expanded(
                       child: TextFormField(
-                        initialValue: (_refueling.quantity ?? '').toString(),
+                        initialValue: (_refuelingAdapter.get().quantity ?? '').toString(),
                         onSaved: (value) =>
-                            _refueling.quantity = toDouble(value),
+                            _refuelingAdapter.get().quantity = toDouble(value),
                         validator: _validateNumber,
                         onEditingComplete: _validateOnEditingIfNeeded,
 
@@ -186,14 +185,14 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   children: <Widget>[
                     Expanded(
                       child: TextFormField(
-                        initialValue: (_refueling.displayedMileage ?? '').toString(),
-                        onSaved: (value) => _refueling.setMileage(value),
+                        initialValue: (_refuelingAdapter.displayedMileage ?? '').toString(),
+                        onSaved: (value) => _refuelingAdapter.setMileage(value),
                         onEditingComplete: _validateOnEditingIfNeeded,
                         validator: _validateNumber,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                             labelText:
-                                '${localization.tr('tripDistance')} ($_distanceUnitString)'),
+                                '${localization.tr('tripDistance')} (${_refuelingAdapter.mileageUnitString})'),
                       ),
                     ),
                     SizedBox(
@@ -222,7 +221,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                     Expanded(
                       child: TextFormField(
                         initialValue: DateFormat(_dateFormat)
-                            .format(_refueling.timestamp),
+                            .format(_refuelingAdapter.get().timestamp),
                         readOnly: true,
                         textAlign: TextAlign.center,
                         decoration:
@@ -236,7 +235,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                     Expanded(
                       child: TextFormField(
                         initialValue: DateFormat(_timeFormat)
-                            .format(_refueling.timestamp),
+                            .format(_refuelingAdapter.get().timestamp),
                         readOnly: true,
                         textAlign: TextAlign.center,
                         decoration:

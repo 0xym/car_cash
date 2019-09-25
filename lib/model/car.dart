@@ -1,11 +1,6 @@
 import 'package:car_cash/utils/common.dart';
-
+import './distance.dart';
 import '../utils/db_names.dart';
-
-enum DistenceUnit {
-  km,
-  mile
-}
 
 class FuelTypeAndUnit {
   static const TYPE = 'type';
@@ -32,7 +27,7 @@ class Car {
   String brand;
   String model;
   String name;
-  DistenceUnit distanceUnit = DistenceUnit.km;
+  Distance distanceUnit = Distance.km;
   double initialMileage;
   List<FuelTypeAndUnit> fuelTypes = [FuelTypeAndUnit(0, 0)];
 
@@ -53,8 +48,8 @@ class Car {
 
   Car();
 
-  Car.deserialize(Map<String, dynamic> json) : brand = json[BRAND], model = json[MODEL], name = json[NAME], 
-    distanceUnit = EnumParser<DistenceUnit>(DistenceUnit.values).fromString(json[DISTANCE_UNIT]),
+  Car.deserialize(Map<String, dynamic> json) : id = json[ID], brand = nullify(json[BRAND]), model = nullify(json[MODEL]), name = json[NAME], 
+    distanceUnit = Distance.fromString(json[DISTANCE_UNIT]),
     initialMileage = json[INITIAL_MILEAGE], 
     fuelTypes = List<FuelTypeAndUnit>.generate(MAX_FUEL_TYPES, (i) => FuelTypeAndUnit(json['$FUEL_TYPE$i'], json['$FUEL_UNIT$i']))..removeWhere((item) => item.type == null || item.unit == null);
 

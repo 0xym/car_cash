@@ -1,3 +1,4 @@
+import 'package:car_cash/adapters/refueling_adapter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../l10n/localization.dart';
@@ -20,7 +21,7 @@ class ExpenseListScreen extends StatelessWidget {
       body: FutureBuilder(future: Provider.of<Refuelings>(context).fetchRefuelings(),
         builder: (ctx, data) => data.connectionState == ConnectionState.waiting ? Center(child: CircularProgressIndicator(),) : 
           Consumer<Refuelings>(builder: (ctx, refuelings, child) => ListView.builder(itemCount: refuelings.itemCount, itemBuilder: (c, idx) => 
-          ExpenseItem(refuelings.itemAtIndex(idx)),),),),
+          ExpenseItem(RefuelingAdapter(c, refuelings.itemAtIndex(idx))),),),),
       floatingActionButton: FloatingActionButton(child: Icon(Icons.add), onPressed: () => Navigator.of(context).pushNamed(AddExpenseScreen.routeName)),
     );
   }

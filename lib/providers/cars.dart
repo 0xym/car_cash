@@ -17,7 +17,7 @@ class Cars extends ChangeNotifier {
   }
 
 
-  Map<int, Car> _items = {};//consider using list and keep deleted items as nulls
+  Map<int, Car> _items;//consider using list and keep deleted items as nulls
 
   Car get(int id) {
     return _items[id];
@@ -28,8 +28,11 @@ class Cars extends ChangeNotifier {
   }
 
   Future<void> fetchCars() async {
+    if (_items != null) {
+      return;
+    }
     final dataList = await DbAccess.getData(TABLE_NAME);
-    _items = dataList.asMap().map((k, v) {_maxCarIndex = max(_maxCarIndex, k); return MapEntry(k, Car.deserialize(v));});
+    _items = dataList.asMap().map((k, v) {final car = Car.deserialize(v); _maxCarIndex = max(_maxCarIndex, car.id); return MapEntry(car.id, car);});
   }
 
   Future<void> addCar(Car car) async {
@@ -40,10 +43,19 @@ class Cars extends ChangeNotifier {
     _items[car.id] = car;
     notifyListeners();
     if (updateDb) {
-      DbAccess.update(TABLE_NAME, car.serialize(), "${Car.ID} = ?", [car.id]);
+      DbAccess.update(TABLE_NAME, car.serialize(), Car.ID, car.id);
     } else {
       DbAccess.insert(TABLE_NAME, car.serialize());
     }
+  }
+
+  Future<void> delete(int id) async {
+    if (id == null) {
+      return;
+    }
+    _items.remove(id);
+    notifyListeners();
+    DbAccess.delete(TABLE_NAME, Car.ID, id);
   }
 
 }

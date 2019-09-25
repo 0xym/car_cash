@@ -39,5 +39,8 @@ class LocalizationEn extends LocalizationBase {
     'errorValueEmpty': 'Value must be provided',
     'errorInvalidNumber': 'Must be a valid number',
     'errorMustBePositive': 'Must be positive',
+    'deleteCarConfirmation': 'Are you sure you want to delete this car?',
+    'cancelAction' : 'Cancel',
+    'deleteAction' : 'Delete', 
   };
 }

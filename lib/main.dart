@@ -5,6 +5,8 @@ import './providers/refuelings.dart';
 import './providers/fuel_types.dart';
 import './providers/fuel_units.dart';
 import './providers/cars.dart';
+import './screens/add_car_screen.dart';
+import './screens/expense_list_screen.dart';
 
 void main() => runApp(MyApp());
 
@@ -15,8 +17,8 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider.value(value: FuelTypes() ,),
         ChangeNotifierProvider.value(value: FuelUnits() ,),
-        ChangeNotifierProvider.value(value: Refuelings() ,),
         ChangeNotifierProvider.value(value: Cars() ,),
+        ChangeNotifierProxyProvider<Cars, Refuelings>(initialBuilder: (ctx) => Refuelings(null), builder: (ctx, cars, last) => Refuelings(cars),),
       ],
       child: MaterialApp(
         supportedLocales: [
@@ -27,6 +29,11 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
+        home: Consumer<Cars>(builder: (ctx, cars, child) => FutureBuilder(
+          future: cars.fetchCars(), 
+          builder: (c, data) => data.connectionState == ConnectionState.waiting ? 
+            Center(child: CircularProgressIndicator()) :
+            cars.keys.length == 0 ? AddCarScreen.mainScreen() : ExpenseListScreen() ,),),
         routes: Routes.routes,
       ),
     );

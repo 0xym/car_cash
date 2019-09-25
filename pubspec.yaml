@@ -1,7 +1,7 @@
 name: car_cash
 description: A new Flutter project.
 
-version: 0.0.3+4
+version: 0.0.4+5
 
 environment:
   sdk: ">=2.3.0 <3.0.0"

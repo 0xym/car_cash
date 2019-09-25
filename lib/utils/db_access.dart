@@ -24,14 +24,18 @@ class DbAccess {
     await db.insert(table, data, conflictAlgorithm: sql.ConflictAlgorithm.replace);
   }
 
-  static Future<void> update(String table, Map<String, Object> data, String where, List<dynamic> whereArgs) async {
-    final db = await database();
-    await db.update(table, data, conflictAlgorithm: sql.ConflictAlgorithm.replace, where: where, whereArgs: whereArgs);
+  static String _getWhereString(String primaryKey) {
+    return primaryKey == null ? null : "$primaryKey = ?";
   }
 
-  static Future<void> delete(String table, String where) async {
+  static Future<void> update(String table, Map<String, Object> data, String primaryKey, dynamic value) async {
     final db = await database();
-    await db.delete(table, where: where);
+    await db.update(table, data, conflictAlgorithm: sql.ConflictAlgorithm.replace, where:  _getWhereString(primaryKey), whereArgs: value == null ? null : [value]);
+  }
+
+  static Future<void> delete(String table, String primaryKey, dynamic value) async {
+    final db = await database();
+    await db.delete(table, where: _getWhereString(primaryKey), whereArgs: value == null ? null : [value]);
   }
 
   static Future<List<Map<String, dynamic>>> getData(String table, {String orderBy}) async {

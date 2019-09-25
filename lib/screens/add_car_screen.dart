@@ -5,9 +5,13 @@ import '../model/car.dart';
 import '../widgets/fuel_type_selection.dart';
 import '../utils/common.dart';
 import '../providers/cars.dart';
+import '../model/distance.dart';
 
 class AddCarScreen extends StatefulWidget {
   static const routeName = '/add-car';
+  final bool _asMainScreen;
+  AddCarScreen() : _asMainScreen = false;
+  AddCarScreen.mainScreen() : _asMainScreen = true;
   @override
   _AddCarScreenState createState() => _AddCarScreenState();
 }
@@ -17,7 +21,7 @@ enum ScrollRequestState { Init, Drawing, Done }
 class _AddCarScreenState extends State<AddCarScreen> {
   final _formKey = GlobalKey<FormState>();
   ScrollController _scrollController;
-  Car _car = Car();
+  Car _car;
   ScrollRequestState _scrollDownRequested = ScrollRequestState.Done;
 
   @override
@@ -33,7 +37,6 @@ class _AddCarScreenState extends State<AddCarScreen> {
   }
 
   void _scrollDown() {
-    // print('in scroll down: ${_scrollController.position.maxScrollExtent??0}');
     _scrollController.animateTo(_scrollController.position.maxScrollExtent,
         duration: Duration(milliseconds: 300), curve: Curves.easeIn);
   }
@@ -54,14 +57,33 @@ class _AddCarScreenState extends State<AddCarScreen> {
   void _saveForm() {
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
-      Provider.of<Cars>(context).addCar(_car);
-      Navigator.of(context).pop();
+      Provider.of<Cars>(context).addCar(_car..sanitize());
+      if (widget._asMainScreen) {
+        Navigator.of(context).pushReplacementNamed('/');
+      } else {
+        Navigator.of(context).pop();
+      }
     }
+  }
+
+  void _deleteRequest() {
+    final loc = Localization.of(context);
+    showDialog(context: context, builder: (ctx) => AlertDialog(title: Text(loc.tr('deleteCarConfirmation')), actions: <Widget>[
+      FlatButton(child: Text(loc.tr('cancelAction')), onPressed: () => Navigator.of(context).pop(),),
+      FlatButton(child: Text(loc.tr('deleteAction')), onPressed: () {
+        Provider.of<Cars>(context).delete(_car.id);
+        Navigator.of(context).pop();
+        Navigator.of(context).pop();
+      } ,),
+    ],));
   }
 
   @override
   Widget build(BuildContext context) {
     final loc = Localization.of(context);
+    if (_car == null) {
+      _car = ModalRoute.of(context).settings.arguments ?? Car();
+    }
     if (_scrollDownRequested == ScrollRequestState.Init) {
       Future.delayed(
           Duration.zero,
@@ -74,6 +96,8 @@ class _AddCarScreenState extends State<AddCarScreen> {
       appBar: AppBar(
         title: Text(loc.tr('addCarTitle')),
         actions: <Widget>[
+          if (_car.id != null) 
+          IconButton(icon: Icon(Icons.delete), onPressed: _deleteRequest,),
           IconButton(icon: Icon(Icons.check), onPressed: _saveForm,)
         ],
       ),
@@ -85,7 +109,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: <Widget>[
               TextFormField(
-                initialValue: '',
+                initialValue: _car.brand ?? '',
                 onSaved: (value) => _car.brand = value,
                 keyboardType: TextInputType.text,
                 decoration: InputDecoration(
@@ -93,7 +117,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
                         '${loc.tr("carBrand")}${loc.tr("optionalMark")}'),
               ),
               TextFormField(
-                initialValue: '',
+                initialValue: _car.model ?? '',
                 keyboardType: TextInputType.text,
                 onSaved: (value) => _car.model = value,
                 decoration: InputDecoration(
@@ -101,30 +125,32 @@ class _AddCarScreenState extends State<AddCarScreen> {
                         '${loc.tr("carModel")}${loc.tr("optionalMark")}'),
               ),
               TextFormField(
-                initialValue: '',
+                initialValue: _car.name ?? '',
                 keyboardType: TextInputType.text,
                 validator: (value) => value.isEmpty ? loc.tr('errorValueEmpty') : null,
                 onSaved: (value) => _car.name = value,
                 decoration: InputDecoration(labelText: loc.tr('carName')),
               ),
-              DropdownButtonFormField<DistenceUnit>(
+              DropdownButtonFormField<Distance>(
                 items: [
                   DropdownMenuItem(
-                    value: DistenceUnit.km,
+                    value: Distance.km,
                     child: Text(loc.tr('unitKm')),
                   ),
                   DropdownMenuItem(
-                    value: DistenceUnit.mile,
+                    value: Distance.mile,
                     child: Text(loc.tr('unitMile')),
                   ),
                 ],
                 value: _car.distanceUnit,
+                validator: (value) => value == null ? loc.tr('errorValueEmpty') : null,
                 onChanged: (value) => setState(() => _car.distanceUnit = value),
                 decoration: InputDecoration(labelText: loc.tr('distanceUnit')),
               ),
               TextFormField(
-                initialValue: '',
+                initialValue: _car.distanceUnit?.toUnit(_car.initialMileage)?.toString() ?? '',
                 keyboardType: TextInputType.number,
+                onSaved: (value) => _car.initialMileage = _car.distanceUnit?.toSi(toDouble(value)) ?? 0.0,
                 validator: (value) => value.isEmpty ? null : toDouble(value) == null ? loc.tr('errorInvalidNumber') : toDouble(value) <= 0.0 ? loc.tr('errorMustBePositive') : null,
                 decoration:
                     InputDecoration(labelText: loc.tr('initialMileage')),

@@ -1,4 +1,3 @@
-import 'package:car_cash/model/fuel_unit.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../l10n/localization.dart';
@@ -36,6 +35,7 @@ class FuelTypeSelectionWidget extends StatelessWidget {
         decoration: InputDecoration(labelText: "${loc.tr('unit')} (${fuelIndex+1})"),
         value: selectedUnit,
         onChanged: (value) => onChange(fuelIndex, selectedType, value),
+        validator: (value) => selectedType != null && selectedUnit == null ? 'error' : null,//this sould not happen
         items: selectedType == null ? null :
           fuelUnits.keysWhere(fuelTypes.get(selectedType).unitType).map((fuel) => DropdownMenuItem(value: fuel, child: Text(loc.ttr(fuelUnits.get(fuel).name)),)).toList(),)
     ],
