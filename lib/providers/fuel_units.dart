@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../model/fuel_unit.dart';
-import '../utils/db_access.dart';
+// import '../utils/db_access.dart';
 
 class FuelUnits extends ChangeNotifier {
   Map<int, FuelUnit> _items = {
@@ -24,6 +24,10 @@ Iterable<int> get keys {
 
 Iterable<int> keysWhere(UnitType type) {
   return _items.keys.where((i) => _items[i].unitType == type);
+}
+
+Iterable<FuelUnit> where(UnitType type) {
+  return _items.values.where((i) => i.unitType == type);
 }
 
 int firstWhere(UnitType type) {

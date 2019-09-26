@@ -26,74 +26,65 @@ class RefuelingAdapter {
         _cars = Provider.of(context, listen: false),
         _fuelTypes = Provider.of(context, listen: false),
         _fuelUnits = Provider.of(context, listen: false),
-        _refueling = refueling ?? Refueling(carId: 1) {//todo get the right id
+        _refueling = refueling ?? Refueling(carId: 1) {//TODO get the right id
     _car = _cars.get(_refueling.carId);
-    _initFuelType();
-    _initFuelUnit();
+    _sanitizeFuelInfo();
+    _fetchFuelInfo();
   }
 
   bool isFuelTypeValid() {
     if (_refueling.fuelTypeId == null) {
       return false;
     }
-    return _car.fuelTypes.indexWhere((i) => i.type == _refueling.fuelTypeId) >= 0;
+    return _carFuelIndex >= 0;
   }
 
   bool isFuelUnitValid() {
     return _refueling.fuelUnitId != null && _fuelType.unitType == _fuelUnits.get(_refueling.fuelUnitId).unitType;
   }
 
-  void _initFuelType() {
+  void _sanitizeFuelInfo() {
     if (!isFuelTypeValid()) {
       _refueling.fuelTypeId = _car.fuelTypes[0].type;
       _refueling.fuelUnitId = _car.fuelTypes[0].unit;
-    }
-      _fuelType = _fuelTypes.get(_refueling.fuelTypeId);
-  }
-
-  void _initFuelUnit() {
-    if (!isFuelUnitValid()) {
+    } else if (!isFuelUnitValid()) {
       _refueling.fuelUnitId = _car.fuelTypes[0].unit;
     }
+  }
+
+  void _fetchFuelInfo() {
+    _fuelType = _fuelTypes.get(_refueling.fuelTypeId);
     _fuelUnit = _fuelUnits.get(_refueling.fuelUnitId);
   }
 
-
-  Refueling get() {
-    return _refueling;
+  void setFuelType(int id) {
+    _refueling.fuelTypeId = id;
+    var idx = _carFuelIndex;
+    if (idx < 0) {
+      idx = 0;
+      _refueling.fuelTypeId = _car.fuelTypes[idx].type;
+    }
+    _refueling.fuelUnitId = _car.fuelTypes[idx].unit;
+    _fetchFuelInfo();
   }
 
-  void setMileage(String value) {
-    final nativeMileage = toDouble(value);
-    _refueling.mileage = nativeMileage == null
-        ? null
-        : _car.distanceUnit.toSi(nativeMileage).round();
+  void setMileage(double value, {int previous}) {
+    _refueling.mileage = value == null ? null : _car.distanceUnit.toSi(value).round() - previous??0;
   }
-
-  double get displayedMileage {
-    return _refueling.mileage == null
-        ? null
-        : _car.distanceUnit.toUnit(_refueling.mileage.toDouble());
-  }
-
-  String get mileageUnitString {
-    return _loc.tr(_car.distanceUnit.toString());
-  }
-
-  String get totalMileageString {
-    return "${(displayedMileage).toStringAsFixed(0)} $mileageUnitString";
-  }
-
-  double get pricePerUnitInHomeCurrency {
-    return _refueling.pricePerUnit * _refueling.exchangeRate;
-  }
-
-  double get totalPriceInHomeCurrency {
-    return pricePerUnitInHomeCurrency * _refueling.quantity;
-  }
-
-  String get quantityUnitStringId {
-    return _fuelUnit.name;
-  }
+  void setStringMileage(String value) {setMileage(toDouble(value)); }
+  double displayedDistance(int distance) => distance == null ? null : _car?.distanceUnit?.toUnit(distance.toDouble());
+  double get displayedMileage => displayedDistance(_refueling.mileage);
+  int get _carFuelIndex => _car.fuelTypes.indexWhere((i) => i.type == _refueling.fuelTypeId);
+  Refueling get() => _refueling;
+  String get mileageUnitString => _loc.ttr(_car.distanceUnit?.abbreviated());
+  String get totalMileageString => "${(displayedMileage).toStringAsFixed(0)} $mileageUnitString"; 
+  double get pricePerUnitInHomeCurrency => _refueling.pricePerUnit * _refueling.exchangeRate;
+  double get totalPriceInHomeCurrency => pricePerUnitInHomeCurrency * _refueling.quantity;
+  String get quantityUnitStringId => _fuelUnit.name;
+  FuelType get fuelType => _fuelType;
+  FuelUnit get fuelUnit => _fuelUnit;
+  List<FuelType> get fuelTypes => _car.fuelTypes.map((i) => _fuelTypes.get(i.type)).toList();
+  List<FuelUnit> get fuelUnits => _fuelUnits.where(_fuelUnit.unitType).toList();
+  int get carInitialMileage => _car.initialMileage;
 
 }

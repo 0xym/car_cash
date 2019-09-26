@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../model/fuel_unit.dart';
 import '../model/fuel_type.dart';
-import '../utils/db_access.dart';
+// import '../utils/db_access.dart';
 
 class FuelTypes extends ChangeNotifier {
   Map<int, FuelType> _items = {

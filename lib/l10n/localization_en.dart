@@ -9,12 +9,13 @@ class LocalizationEn extends LocalizationBase {
     'expenseType_Refueling': 'Refueling',
     'pricePerUnit': 'Price per unit',
     'quantity': 'Quantity',
-    'litre': 'Litre',
-    'litreSymbol' : 'l',
+    'liter': 'Liter',
+    'literSymbol' : 'l',
     'gallon_us': 'Gallon(US)',
     'gallon_uk': 'Gallon(UK)',
     'cubicMeter': 'Cubic meter',
     'tripDistance': 'Trip distance',
+    'totalDistance': 'Total distance',
     'mileageTotal': 'Total mileage',
     'mileageTrip': 'Trip mileage',
     'date': 'Date',
@@ -32,6 +33,8 @@ class LocalizationEn extends LocalizationBase {
     'distanceUnit': 'Distance unit',
     'unitKm': 'Kilometers',
     'unitMile': 'Miles',
+    'km': 'km',
+    'mile': 'mile',
     'kiloWattHour': 'kWh',
     'initialMileage': 'Initial mileage',
     'addFuelType': 'Add another fuel type',
@@ -42,5 +45,11 @@ class LocalizationEn extends LocalizationBase {
     'deleteCarConfirmation': 'Are you sure you want to delete this car?',
     'cancelAction' : 'Cancel',
     'deleteAction' : 'Delete', 
+    'petrol': 'Petrol',
+    'diesel': 'Diesel',
+    'LPG': 'LPG',// liquefied petroleum gas
+    'CNG': 'CNG',//compressed natural gas
+    'hydrogen': 'Hydrogen',
+    'electricity': 'Electricity',
   };
 }

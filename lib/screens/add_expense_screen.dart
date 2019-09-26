@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../l10n/localization.dart';
 import '../providers/refuelings.dart';
 import '../utils/common.dart';
 import '../adapters/refueling_adapter.dart';
+import '../widgets/refueling_datetime.dart';
+import '../widgets/two_item_line.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   static const routeName = '/add-expense';
@@ -18,14 +19,13 @@ enum MileageType { Trip, Total }
 class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _formKey = GlobalKey<FormState>();
   final _homeCurency = 'PLN';
-  final _dateFormat = 'yyyy-MM-dd';
-  final _timeFormat = 'HH:mm';
-  static const _spaceBetween = 10.0;
   RefuelingAdapter _refuelingAdapter;
   DateTime _oldTimestamp;
+  MileageType _mileageType = MileageType.Trip;
   bool _validationFailed = false;
+  Refuelings _refuelings;
 
-  void _saveRefueling() {
+   void _saveRefueling() {
     if (_validateForm()) {
       _formKey.currentState.save();
       final refuelings = Provider.of<Refuelings>(context, listen: false);
@@ -40,6 +40,32 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     return value.isEmpty ? loc.tr('errorValueEmpty') : parsed == null
         ? loc.tr('errorInvalidNumber') 
         : parsed <= 0.0 ? loc.tr('errorMustBePositive') : null;
+  }
+
+  String _validateRefuelingDistance(String value) {
+    final preValidation = _validateNumber(value);
+    if (_mileageType == MileageType.Trip || preValidation != null) {
+      return preValidation;
+    }
+    final minMax = _refuelings.sorouningRefuelingData(_refuelingAdapter.get(), _refuelingAdapter.carInitialMileage);
+    final minValue = minMax.prevMileage;
+    final maxValue = minMax.nextMileage;
+    // final sorounding = Provider.of<Refuelings>(context, listen: false).sorouningRefuelingsOfCar(_refuelingAdapter.get());
+    // final minValue = sorounding[0]?.mileage ?? _refuelingAdapter.carInitialMileage;
+    // final maxValue = sorounding[1]?.mileage;
+    return (toDouble(value) < minValue) || (maxValue != null && toDouble(value) > maxValue)  ? 'Must be greater than ${_refuelingAdapter.displayedDistance(minValue)}${maxValue == null ?"" : " and smaller than " + _refuelingAdapter.displayedDistance(maxValue).toString()}' : null;
+  }
+
+  void _saveRefuelingDistence(String value) {
+    if (_mileageType == MileageType.Total) {
+      final data = _refuelings.sorouningRefuelingData(_refuelingAdapter.get(), _refuelingAdapter.carInitialMileage);
+      _refuelingAdapter.setMileage(toDouble(value), previous: data.prevMileage);
+      if (data.nextIndex != null) {
+        _refuelings.itemAtIndex(data.nextIndex).mileage = data.nextMileage - data.prevMileage - _refuelingAdapter.get().mileage;
+      }
+    } else {
+      _refuelingAdapter.setMileage(toDouble(value));
+    }
   }
 
   bool _validateForm() {
@@ -57,8 +83,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   Widget build(BuildContext context) {
     final localization = Localization.of(context);
     if (_refuelingAdapter == null) {
+      _refuelings = Provider.of<Refuelings>(context, listen: false);
       _refuelingAdapter = ModalRoute.of(context).settings.arguments ?? RefuelingAdapter(context, null);
-      // _refueling = ModalRoute.of(context).settings.arguments ?? Refueling(carId: 0, fuelId: 0);
       _oldTimestamp = _refuelingAdapter.get().timestamp;
       _refuelingAdapter.get().timestamp ??= DateTime.now();
     }
@@ -73,181 +99,105 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         ],
       ),
       body: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: <Widget>[
-                Text(
-                  localization.getTranslation('expenseType_Refueling'),
-                  style: TextStyle(fontSize: 30),
-                ),
-                Divider(),
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            children: <Widget>[
+              Text(
+                localization.getTranslation('expenseType_Refueling'),
+                style: TextStyle(fontSize: 30),
+              ),
+              Divider(),
+              //TODO: add car selection
+              TwoItemLine(
+                TextFormField(
+                  initialValue: (_refuelingAdapter.get().pricePerUnit ?? '').toString(),
+                  onSaved: (value) =>
+                      _refuelingAdapter.get().pricePerUnit = toDouble(value),
+                  validator: _validateNumber,
+                  onEditingComplete: _validateOnEditingIfNeeded,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                      labelText:
+                          localization.getTranslation('pricePerUnit'),),), 
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
-                    Expanded(
-                        child: TextFormField(
-                      initialValue: (_refuelingAdapter.get().pricePerUnit ?? '').toString(),
-                      onSaved: (value) =>
-                          _refuelingAdapter.get().pricePerUnit = toDouble(value),
-                      validator: _validateNumber,
-                      onEditingComplete: _validateOnEditingIfNeeded,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                          labelText:
-                              localization.getTranslation('pricePerUnit'),),
-                    )),
-                    SizedBox(
-                      width: _spaceBetween,
-                    ),
-                    Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: <Widget>[
-                          Text(_homeCurency),
-                          Checkbox(
-                            value: true,
-                            onChanged: (_) {},
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: <Widget>[
-                    Expanded(
-                      child: TextFormField(
-                        initialValue: (_refuelingAdapter.get().quantity ?? '').toString(),
-                        onSaved: (value) =>
-                            _refuelingAdapter.get().quantity = toDouble(value),
-                        validator: _validateNumber,
-                        onEditingComplete: _validateOnEditingIfNeeded,
-
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                            labelText: localization.tr('quantity'),),
-                      ),
-                    ),
-                    SizedBox(
-                      width: _spaceBetween,
-                    ),
-                    Expanded(
-                        child: DropdownButtonFormField<String>(
-                      items: [
-                        DropdownMenuItem(
-                          value: 'litre',
-                          child: Text(localization.tr('litre')),
-                        ),
-                        DropdownMenuItem(
-                          value: 'gallon_us',
-                          child: Text(localization.tr('gallon_us')),
-                        )
-                      ],
+                    Text(_homeCurency),
+                    Checkbox(
+                      value: true,
                       onChanged: (_) {},
-                      decoration:
-                          InputDecoration(labelText: localization.tr('unit')),
-                      value: 'litre',
-                    ))
+                    ),
                   ],
+                )),
+              TwoItemLine(
+                TextFormField(
+                  initialValue: (_refuelingAdapter.get().quantity ?? '').toString(),
+                  onSaved: (value) =>
+                      _refuelingAdapter.get().quantity = toDouble(value),
+                  validator: _validateNumber,
+                  onEditingComplete: _validateOnEditingIfNeeded,
+
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                      labelText: localization.tr('quantity'),),
                 ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: <Widget>[
-                    Expanded(
-                      child: TextFormField(
-                        initialValue: '',
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                            labelText: localization.tr('totalPrice')),
-                      ),
-                    ),
-                    SizedBox(
-                      width: _spaceBetween,
-                    ),
-                    Expanded(
-                      child: DropdownButtonFormField<int>(
-                        items: [
-                          DropdownMenuItem(
-                            value: 0,
-                            child: Text('Petrol'),
-                          ),
-                        ],
-                        value: 0,
-                        decoration: InputDecoration(
-                            labelText: localization.tr('fuelType')),
-                      ),
-                    )
-                  ],
-                ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: <Widget>[
-                    Expanded(
-                      child: TextFormField(
-                        initialValue: (_refuelingAdapter.displayedMileage ?? '').toString(),
-                        onSaved: (value) => _refuelingAdapter.setMileage(value),
-                        onEditingComplete: _validateOnEditingIfNeeded,
-                        validator: _validateNumber,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                            labelText:
-                                '${localization.tr('tripDistance')} (${_refuelingAdapter.mileageUnitString})'),
-                      ),
-                    ),
-                    SizedBox(
-                      width: _spaceBetween,
-                    ),
-                    Expanded(
-                        child: DropdownButtonFormField<MileageType>(
-                      items: [
-                        DropdownMenuItem(
-                          value: MileageType.Total,
-                          child: Text(localization.tr('mileageTotal')),
-                        ),
-                        DropdownMenuItem(
-                          value: MileageType.Trip,
-                          child: Text(localization.tr('mileageTrip')),
-                        ),
-                      ],
-                      value: MileageType.Trip,
-                      decoration: InputDecoration(
-                          labelText: localization.tr('distanceMeasurement')),
-                    ))
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: TextFormField(
-                        initialValue: DateFormat(_dateFormat)
-                            .format(_refuelingAdapter.get().timestamp),
-                        readOnly: true,
-                        textAlign: TextAlign.center,
-                        decoration:
-                            InputDecoration(labelText: localization.tr('date')),
-                        onTap: () {},
-                      ),
-                    ),
-                    SizedBox(
-                      width: _spaceBetween,
-                    ),
-                    Expanded(
-                      child: TextFormField(
-                        initialValue: DateFormat(_timeFormat)
-                            .format(_refuelingAdapter.get().timestamp),
-                        readOnly: true,
-                        textAlign: TextAlign.center,
-                        decoration:
-                            InputDecoration(labelText: localization.tr('time')),
-                        onTap: () {},
-                      ),
-                    ),
-                  ],
+                DropdownButtonFormField<int>(
+                  items: _refuelingAdapter.fuelUnits.map((f) => DropdownMenuItem(value: f.id, child: Text(localization.ttr(f.name)),)).toList(),
+                  onChanged: (_) {},
+                  decoration:
+                      InputDecoration(labelText: localization.tr('unit')),
+                  value: _refuelingAdapter.fuelUnit.id,
                 )
-              ],
-            ),
-          )),
+              ),
+              TwoItemLine(
+                TextFormField(
+                  initialValue: '',
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                      labelText: localization.tr('totalPrice')),
+                ),
+                DropdownButtonFormField<int>(
+                  items: _refuelingAdapter.fuelTypes.map((f) => DropdownMenuItem(value: f.id, child: Text(localization.ttr(f.name)),)).toList() ,
+                  value: _refuelingAdapter.fuelType?.id,
+                  decoration: InputDecoration(
+                      labelText: localization.tr('fuelType')),
+                  onChanged: (value) => setState(() => _refuelingAdapter.setFuelType(value)) ,
+                )
+              ),
+              TwoItemLine(
+                TextFormField(
+                  initialValue: (_refuelingAdapter.displayedMileage ?? '').toString(),
+                  onSaved: _saveRefuelingDistence,
+                  onEditingComplete: _validateOnEditingIfNeeded,
+                  validator: _validateRefuelingDistance,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                      labelText:
+                          '${localization.tr(_mileageType == MileageType.Trip ? 'tripDistance' : 'totalDistance')} (${_refuelingAdapter.mileageUnitString})'),
+                ),
+                DropdownButtonFormField<MileageType>(
+                  items: [
+                    DropdownMenuItem(
+                      value: MileageType.Total,
+                      child: Text(localization.tr('mileageTotal')),
+                    ),
+                    DropdownMenuItem(
+                      value: MileageType.Trip,
+                      child: Text(localization.tr('mileageTrip')),
+                    ),
+                  ],
+                  value: _mileageType,
+                  onChanged: (value) => setState(() => _mileageType = value),
+                  decoration: InputDecoration(
+                      labelText: localization.tr('distanceMeasurement')),
+                )
+              ),
+              TwoItemLine(RefuelingDate(_refuelingAdapter.get()), RefuelingTime(_refuelingAdapter.get())),
+            ]
+          ),
+        )
+      )
     );
   }
 }

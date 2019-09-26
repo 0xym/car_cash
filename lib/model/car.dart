@@ -28,11 +28,11 @@ class Car {
   String model;
   String name;
   Distance distanceUnit = Distance.km;
-  double initialMileage;
+  int initialMileage;
   List<FuelTypeAndUnit> fuelTypes = [FuelTypeAndUnit(0, 0)];
 
   static String get dbLayout {
-    return '($ID $PRIMARY_KEY, $BRAND $TEXT, $MODEL $TEXT, $NAME $TEXT, $DISTANCE_UNIT $TEXT, $INITIAL_MILEAGE $REAL,' + 
+    return '($ID $PRIMARY_KEY, $BRAND $TEXT, $MODEL $TEXT, $NAME $TEXT, $DISTANCE_UNIT $TEXT, $INITIAL_MILEAGE $INT,' + 
     List<String>.generate(MAX_FUEL_TYPES, (i) => '$FUEL_TYPE$i $INT, $FUEL_UNIT$i $INT').join(',') + ')';
   }
 
@@ -50,7 +50,7 @@ class Car {
 
   Car.deserialize(Map<String, dynamic> json) : id = json[ID], brand = nullify(json[BRAND]), model = nullify(json[MODEL]), name = json[NAME], 
     distanceUnit = Distance.fromString(json[DISTANCE_UNIT]),
-    initialMileage = json[INITIAL_MILEAGE], 
+    initialMileage = json[INITIAL_MILEAGE].round(), 
     fuelTypes = List<FuelTypeAndUnit>.generate(MAX_FUEL_TYPES, (i) => FuelTypeAndUnit(json['$FUEL_TYPE$i'], json['$FUEL_UNIT$i']))..removeWhere((item) => item.type == null || item.unit == null);
 
   void sanitize() {

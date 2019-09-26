@@ -32,7 +32,7 @@ class Cars extends ChangeNotifier {
       return;
     }
     final dataList = await DbAccess.getData(TABLE_NAME);
-    _items = dataList.asMap().map((k, v) {final car = Car.deserialize(v); _maxCarIndex = max(_maxCarIndex, car.id); return MapEntry(car.id, car);});
+    _items = dataList.asMap().map((k, v) {final car = Car.deserialize(v); _maxCarIndex = max(_maxCarIndex, car.id); return MapEntry(car.id, car);}) ?? {};
   }
 
   Future<void> addCar(Car car) async {

@@ -148,9 +148,9 @@ class _AddCarScreenState extends State<AddCarScreen> {
                 decoration: InputDecoration(labelText: loc.tr('distanceUnit')),
               ),
               TextFormField(
-                initialValue: _car.distanceUnit?.toUnit(_car.initialMileage)?.toString() ?? '',
+                initialValue: _car.distanceUnit?.toUnit(_car.initialMileage.toDouble())?.toString() ?? '',
                 keyboardType: TextInputType.number,
-                onSaved: (value) => _car.initialMileage = _car.distanceUnit?.toSi(toDouble(value)) ?? 0.0,
+                onSaved: (value) => _car.initialMileage = _car.distanceUnit?.toSi(toDouble(value))?.round() ?? 0,
                 validator: (value) => value.isEmpty ? null : toDouble(value) == null ? loc.tr('errorInvalidNumber') : toDouble(value) <= 0.0 ? loc.tr('errorMustBePositive') : null,
                 decoration:
                     InputDecoration(labelText: loc.tr('initialMileage')),

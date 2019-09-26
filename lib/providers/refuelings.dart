@@ -3,6 +3,13 @@ import '../model/refueling.dart';
 import '../utils/db_access.dart';
 import './cars.dart';
 
+class SorroundingRefuelingData {
+  int prevMileage;
+  int nextMileage;
+  int nextIndex;
+  SorroundingRefuelingData(this.prevMileage, this.nextMileage, this.nextIndex);
+}
+
 class Refuelings extends ChangeNotifier {
   static const TABLE_NAME = 'refuelings';
   static bool _dbCreationSubscribed = false;
@@ -16,8 +23,42 @@ class Refuelings extends ChangeNotifier {
     }
   }
 
-  Refueling itemAtIndex(int index) {
-    return _items[index];//consider reversing indexes
+  Refueling _itemAtNotNull(int index) => index >= 0 && index < _items.length ? _items[index] : null;
+  Refueling itemAtIndex(int index) => _itemAtNotNull(index ?? -1);
+  int get itemCount => _items.length;
+  Refueling lastOfCar(int id) => _items.firstWhere((i) => i.carId == id);
+  Refueling previousOfCar(Refueling refueling) {
+    var idx = _items.indexWhere((item) => item.timestamp.isAfter(refueling.timestamp));
+    idx = idx == -1 ? -1 : _items.indexWhere((item) => item.carId == refueling.carId, idx);
+    return itemAtIndex(idx);
+  }
+  SorroundingRefuelingData sorouningRefuelingData(Refueling refueling, int initial) {
+    var prev = initial;
+    int next = prev;
+    for (var idx = _items.length - 1; idx >= 0; --idx) {
+      if (_items[idx].carId == refueling.carId) {
+        if (_items[idx].timestamp.isAfter(refueling.timestamp)) {
+          return SorroundingRefuelingData(prev, next + _items[idx].mileage, idx);
+        } else if (_items[idx].timestamp.isBefore(refueling.timestamp)) {
+          prev += _items[idx].mileage;
+          next = prev;
+        } else {
+          next += _items[idx].mileage;
+        }
+      }
+    }
+    return SorroundingRefuelingData(prev, null, null);
+  }
+  List<Refueling> sorouningRefuelingsOfCar(Refueling refueling) {
+    var idx = _items.indexWhere((item) => item.timestamp.isBefore(refueling.timestamp));
+    if (idx == -1) idx = _items.length;
+    final previousIdx = _items.indexWhere((item) => item.carId == refueling.carId, idx);
+    var backIdx = idx - 1;
+    if (idx > 0 && _items[idx - 1].timestamp.isAtSameMomentAs(refueling.timestamp)) {
+      --backIdx;
+    }
+    final nextIdx = backIdx < 0 ? -1 : _items.lastIndexWhere((item) => item.carId == refueling.carId, backIdx);
+    return [itemAtIndex(previousIdx), itemAtIndex(nextIdx)];
   }
 
   Future<void> fetchRefuelings() async {
@@ -38,10 +79,6 @@ class Refuelings extends ChangeNotifier {
     _deleteRefuelings(toRemove);
   }
 
-  int get itemCount {
-    return _items.length;
-  }
-
   Future<void> _addRefueling(Refueling refueling) async {
     var idx = _items.indexWhere((item) => item.timestamp.isBefore(refueling.timestamp));
     if (idx == -1) idx = _items.length;
@@ -51,7 +88,6 @@ class Refuelings extends ChangeNotifier {
       DbAccess.update(TABLE_NAME, refueling.serialize(), Refueling.TIMESTAMP, refueling.serializedTimestamp);
     } else {
       _items.add(refueling);
-      // DbAccess.update(TABLE_NAME, refueling.serialize(), '${Refueling.TIMESTAMP} = ?', [refueling.serializedTimestamp]);
       DbAccess.insert(TABLE_NAME, refueling.serialize());
     }
   }
