@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: FuelTypes() ,),
         ChangeNotifierProvider.value(value: FuelUnits() ,),
         ChangeNotifierProvider.value(value: Cars() ,),
-        ChangeNotifierProxyProvider<Cars, Refuelings>(initialBuilder: (ctx) => Refuelings(null), builder: (ctx, cars, last) => Refuelings(cars),),
+        ChangeNotifierProvider.value(value: Refuelings() ,),
       ],
       child: MaterialApp(
         supportedLocales: [

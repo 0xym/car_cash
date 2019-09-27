@@ -5,6 +5,7 @@ import '../model/car.dart';
 import '../widgets/fuel_type_selection.dart';
 import '../utils/common.dart';
 import '../providers/cars.dart';
+import '../providers/refuelings.dart';
 import '../model/distance.dart';
 
 class AddCarScreen extends StatefulWidget {
@@ -42,10 +43,9 @@ class _AddCarScreenState extends State<AddCarScreen> {
   }
 
   void _fuelTypeChanged(int index, int fuelType, int fuelUnit) {
-    setState(() {
-      _car.fuelTypes[index].type = fuelType;
-      _car.fuelTypes[index].unit = fuelUnit;
-    });
+    if ((_car.fuelTypes[index].type != fuelType) || (_car.fuelTypes[index].unit != fuelUnit)) {
+      setState(() => _car.fuelTypes[index] = FuelTypeAndUnit(fuelType, fuelUnit));
+    }
   }
 
   void _deleteFuelType(int index) {
@@ -57,7 +57,13 @@ class _AddCarScreenState extends State<AddCarScreen> {
   void _saveForm() {
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
-      Provider.of<Cars>(context).addCar(_car..sanitize());
+      final cars = Provider.of<Cars>(context);
+      final oldMileage = cars.get(_car.id)?.initialMileage;
+      final requestUpdate = (oldMileage != null) && (oldMileage  != _car.initialMileage);
+      cars.addCar(_car..sanitize());
+      if (requestUpdate) {
+        Provider.of<Refuelings>(context).recalculateTotalMileage(_car.id, _car.initialMileage);
+      }
       if (widget._asMainScreen) {
         Navigator.of(context).pushReplacementNamed('/');
       } else {
@@ -110,7 +116,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
             children: <Widget>[
               TextFormField(
                 initialValue: _car.brand ?? '',
-                onSaved: (value) => _car.brand = value,
+                onSaved: (value) => _car = _car.copyWith(brand: value),
                 keyboardType: TextInputType.text,
                 decoration: InputDecoration(
                     labelText:
@@ -119,7 +125,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
               TextFormField(
                 initialValue: _car.model ?? '',
                 keyboardType: TextInputType.text,
-                onSaved: (value) => _car.model = value,
+                onSaved: (value) => _car = _car.copyWith(model: value),
                 decoration: InputDecoration(
                     labelText:
                         '${loc.tr("carModel")}${loc.tr("optionalMark")}'),
@@ -128,7 +134,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
                 initialValue: _car.name ?? '',
                 keyboardType: TextInputType.text,
                 validator: (value) => value.isEmpty ? loc.tr('errorValueEmpty') : null,
-                onSaved: (value) => _car.name = value,
+                onSaved: (value) => _car = _car.copyWith(name: value),
                 decoration: InputDecoration(labelText: loc.tr('carName')),
               ),
               DropdownButtonFormField<Distance>(
@@ -144,13 +150,13 @@ class _AddCarScreenState extends State<AddCarScreen> {
                 ],
                 value: _car.distanceUnit,
                 validator: (value) => value == null ? loc.tr('errorValueEmpty') : null,
-                onChanged: (value) => setState(() => _car.distanceUnit = value),
+                onChanged: (value) => setState(() => _car = _car.copyWith(distanceUnit: value)),
                 decoration: InputDecoration(labelText: loc.tr('distanceUnit')),
               ),
               TextFormField(
-                initialValue: _car.distanceUnit?.toUnit(_car.initialMileage.toDouble())?.toString() ?? '',
+                initialValue: _car.distanceUnit?.toUnit(_car.initialMileage?.toDouble())?.toString() ?? '',
                 keyboardType: TextInputType.number,
-                onSaved: (value) => _car.initialMileage = _car.distanceUnit?.toSi(toDouble(value))?.round() ?? 0,
+                onSaved: (value) => _car = _car.copyWith(initialMileage: _car.distanceUnit?.toSi(toDouble(value))?.round() ?? 0),
                 validator: (value) => value.isEmpty ? null : toDouble(value) == null ? loc.tr('errorInvalidNumber') : toDouble(value) <= 0.0 ? loc.tr('errorMustBePositive') : null,
                 decoration:
                     InputDecoration(labelText: loc.tr('initialMileage')),

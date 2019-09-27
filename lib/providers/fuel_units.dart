@@ -14,9 +14,7 @@ class FuelUnits extends ChangeNotifier {
 
   };
 
-  FuelUnit get(int id) {
-    return _items[id];
-  }
+  FuelUnit get(int id) => _items.containsKey(id) ? _items[id] : null;
 
 Iterable<int> get keys {
     return _items.keys;

@@ -1,11 +1,16 @@
+import 'package:car_cash/adapters/refueling_adapter.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../l10n/localization.dart';
 import '../model/refueling.dart';
+import '../utils/common.dart';
+
+typedef TimestampSetter = Function(DateTime);
 
 abstract class _RefuelingDateTime extends StatefulWidget {
-  final Refueling _refueling;
-  _RefuelingDateTime(this._refueling);
+  final RefuelingAdapter _refueling;
+  final TimestampSetter _setter;
+  _RefuelingDateTime(this._refueling, this._setter);
 }
 
 abstract class _RefuelingDateTimeState extends State<_RefuelingDateTime> {
@@ -23,11 +28,15 @@ abstract class _RefuelingDateTimeState extends State<_RefuelingDateTime> {
     super.dispose();
   }
 
-  DateTime get _old => widget._refueling.timestamp;
+  DateTime get _old => widget._refueling.get().timestamp;
   String get _format;
   String get _label;
-  void _setText() => _controller.text = DateFormat(_format).format(widget._refueling.timestamp);
+  void _setText() => _controller.text = DateFormat(_format).format(_old);
   void _showPicker();
+  set timestamp(DateTime timestamp) {
+    widget._setter(timestamp);
+    setState(() => _setText());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +53,7 @@ abstract class _RefuelingDateTimeState extends State<_RefuelingDateTime> {
 }
 
 class RefuelingDate extends _RefuelingDateTime {
-  RefuelingDate(Refueling refueling) : super(refueling);
+  RefuelingDate(RefuelingAdapter refueling, TimestampSetter setter) : super(refueling, setter);
 
   @override
   _RefuelingDateTimeState createState() => _RefuelingDateState();
@@ -53,20 +62,17 @@ class RefuelingDate extends _RefuelingDateTime {
 class _RefuelingDateState extends _RefuelingDateTimeState {
   void _updateDate(DateTime date) {
     if (date != null) {
-      setState(() {
-        widget._refueling.timestamp = DateTime(date.year, date.month, date.day, _old.hour, _old.minute, _old.second, _old.millisecond);
-        _setText();
-      });
+      timestamp = DateTime(date.year, date.month, date.day, _old.hour, _old.minute, _old.second, _old.millisecond);
     }
   }
 
   String get _format => 'yyyy-MM-dd';
   String get _label => 'date';
-  void _showPicker() => showDatePicker(context: context, initialDate: _old, firstDate: DateTime(2000), lastDate: DateTime.now()).then(_updateDate);
+  void _showPicker() => showDatePicker(context: context, initialDate: _old, firstDate: DateTime(2000), lastDate: today()).then(_updateDate);
 }
 
 class RefuelingTime extends _RefuelingDateTime {
-  RefuelingTime(Refueling refueling) : super(refueling);
+  RefuelingTime(RefuelingAdapter refueling, TimestampSetter setter) : super(refueling, setter);
 
   @override
   _RefuelingDateTimeState createState() => _RefuelingTimeState();
@@ -74,10 +80,7 @@ class RefuelingTime extends _RefuelingDateTime {
 class _RefuelingTimeState extends _RefuelingDateTimeState {
   void _updateTime(TimeOfDay time) {
     if (time != null) {
-      setState(() {
-        widget._refueling.timestamp = DateTime(_old.year, _old.month, _old.day, time.hour, time.minute, _old.second, _old.millisecond);
-        _setText();
-      });
+      timestamp = DateTime(_old.year, _old.month, _old.day, time.hour, time.minute, _old.second, _old.millisecond);
     }
   }
 

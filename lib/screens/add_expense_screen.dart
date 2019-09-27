@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../l10n/localization.dart';
+import '../model/refueling.dart';
 import '../providers/refuelings.dart';
 import '../utils/common.dart';
 import '../adapters/refueling_adapter.dart';
@@ -20,7 +21,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _formKey = GlobalKey<FormState>();
   final _homeCurency = 'PLN';
   RefuelingAdapter _refuelingAdapter;
-  DateTime _oldTimestamp;
+  Refueling _oldRefueling;
   MileageType _mileageType = MileageType.Trip;
   bool _validationFailed = false;
   Refuelings _refuelings;
@@ -29,7 +30,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     if (_validateForm()) {
       _formKey.currentState.save();
       final refuelings = Provider.of<Refuelings>(context, listen: false);
-      refuelings.changeRefueling(_oldTimestamp, _refuelingAdapter.get());
+      refuelings.changeRefueling(_oldRefueling.timestamp, _refuelingAdapter.get());
+      if (_mileageType == MileageType.Trip) {
+        if (_oldRefueling?.carId != null && _refuelingAdapter.get().carId != _oldRefueling.carId) {
+          _refuelings.recalculateTotalMileage(_oldRefueling.carId, _refuelingAdapter.getCarInitialMileage(_oldRefueling.carId));
+        }
+        _refuelings.recalculateTotalMileage(_refuelingAdapter.get().carId, _refuelingAdapter.carInitialMileage);
+      }
       Navigator.of(context).pop();
     }
   }
@@ -50,21 +57,20 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     final minMax = _refuelings.sorouningRefuelingData(_refuelingAdapter.get(), _refuelingAdapter.carInitialMileage);
     final minValue = minMax.prevMileage;
     final maxValue = minMax.nextMileage;
-    // final sorounding = Provider.of<Refuelings>(context, listen: false).sorouningRefuelingsOfCar(_refuelingAdapter.get());
-    // final minValue = sorounding[0]?.mileage ?? _refuelingAdapter.carInitialMileage;
-    // final maxValue = sorounding[1]?.mileage;
     return (toDouble(value) < minValue) || (maxValue != null && toDouble(value) > maxValue)  ? 'Must be greater than ${_refuelingAdapter.displayedDistance(minValue)}${maxValue == null ?"" : " and smaller than " + _refuelingAdapter.displayedDistance(maxValue).toString()}' : null;
   }
 
   void _saveRefuelingDistence(String value) {
     if (_mileageType == MileageType.Total) {
-      final data = _refuelings.sorouningRefuelingData(_refuelingAdapter.get(), _refuelingAdapter.carInitialMileage);
-      _refuelingAdapter.setMileage(toDouble(value), previous: data.prevMileage);
-      if (data.nextIndex != null) {
-        _refuelings.itemAtIndex(data.nextIndex).mileage = data.nextMileage - data.prevMileage - _refuelingAdapter.get().mileage;
-      }
+      final nextOfOld = _oldRefueling == null ? -1 : _refuelings.nextRefuelingIndexOfCar(_oldRefueling);
+      _refuelings.updateRefuelingTripMileage(nextOfOld, increaseBy: _oldRefueling?.tripMileage);
+      final prevOfThis = _refuelings.previousRefuelingIndexOfCar(_refuelingAdapter.get());
+      final prevMileage = _refuelings.itemAtIndex(prevOfThis)?.totalMileage;
+      _refuelingAdapter.setTotalMileage(toDouble(value), prevMileage: prevMileage);
+      final nextOfThis = _refuelings.nextRefuelingIndexOfCar(_refuelingAdapter.get(), hint: prevOfThis);
+      _refuelings.updateRefuelingTripMileage(nextOfThis, decreaseBy: _refuelingAdapter.get().tripMileage);
     } else {
-      _refuelingAdapter.setMileage(toDouble(value));
+      _refuelingAdapter.setTripMileage(toDouble(value));
     }
   }
 
@@ -79,19 +85,67 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     }
   }
 
+  void _deleteAndExtendNext() {
+    final nextOfOld = _oldRefueling == null ? -1 : _refuelings.nextRefuelingIndexOfCar(_oldRefueling);
+    _refuelings.updateRefuelingTripMileage(nextOfOld, increaseBy: _oldRefueling?.tripMileage);
+    _refuelings.deleteRefueling(_oldRefueling.timestamp);
+    Navigator.of(context).pop();
+    Navigator.of(context).pop();
+  }
+
+  void _deleteAndReduceTotal() {
+    _refuelings.deleteRefueling(_oldRefueling.timestamp);
+    _refuelings.recalculateTotalMileage(_oldRefueling.carId, _refuelingAdapter.getCarInitialMileage(_oldRefueling.carId));
+    Navigator.of(context).pop();
+    Navigator.of(context).pop();
+  }
+
+  void _deleteRequested() {
+    final loc = Localization.of(context);
+    showDialog(context: context, builder: (ctx) => AlertDialog(
+      title: Text(loc.tr('deleteRefuelingQuestion')), 
+      content: Text(loc.tr('deleteRefuelingDetails')),
+      actions: <Widget>[
+        FlatButton(child: Text(loc.tr('extendNextAction')), onPressed: _deleteAndExtendNext,),
+        FlatButton(child: Text(loc.tr('reduceTotalAction')), onPressed: _deleteAndReduceTotal,),
+      ]
+    ,));
+  }
+
+  void _updateTimestamp(DateTime timestamp) {
+    if (timestamp.isAtSameMomentAs(_refuelingAdapter.get().timestamp)) {
+      return;
+    }
+    //TODO handling should be related to trip distance text input controller
+    final oldPrev = _refuelings.previousRefuelingIndexOfCar(_refuelingAdapter.get());
+    _refuelingAdapter.set(timestamp: timestamp);
+    // return;
+    final prev = _refuelings.previousRefuelingIndexOfCar(_refuelingAdapter.get());
+    if (_mileageType == MileageType.Total) {
+      _refuelingAdapter.set(tripMileage: _refuelingAdapter.get().totalMileage - (_refuelings.itemAtIndex(prev)?.totalMileage ?? _refuelingAdapter.carInitialMileage));
+    } else {
+      final toFuture = _refuelings.isMovedToFuture(prevIdx: oldPrev, nextIdx: prev);
+      _refuelingAdapter.get().totalMileage = (_refuelings.itemAtIndex(prev)?.totalMileage ?? _refuelingAdapter.carInitialMileage) + _refuelingAdapter.get().tripMileage - (toFuture ? _oldRefueling?.tripMileage ?? 0 : 0);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final localization = Localization.of(context);
     if (_refuelingAdapter == null) {
       _refuelings = Provider.of<Refuelings>(context, listen: false);
-      _refuelingAdapter = ModalRoute.of(context).settings.arguments ?? RefuelingAdapter(context, null);
-      _oldTimestamp = _refuelingAdapter.get().timestamp;
-      _refuelingAdapter.get().timestamp ??= DateTime.now();
+      _refuelingAdapter = ModalRoute.of(context).settings.arguments;
+      _oldRefueling =  _refuelingAdapter?.get();
+      _refuelingAdapter ??= RefuelingAdapter(context, null);
     }
     return Scaffold(
       appBar: AppBar(
         title: Text(localization.addExpenseTitle),
         actions: <Widget>[
+          if (_oldRefueling != null) IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: _deleteRequested,
+          ),
           IconButton(
             icon: Icon(Icons.check),
             onPressed: _saveRefueling,
@@ -112,8 +166,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               TwoItemLine(
                 TextFormField(
                   initialValue: (_refuelingAdapter.get().pricePerUnit ?? '').toString(),
-                  onSaved: (value) =>
-                      _refuelingAdapter.get().pricePerUnit = toDouble(value),
+                  onSaved: (value) => _refuelingAdapter.pricePerUnit = toDouble(value),
                   validator: _validateNumber,
                   onEditingComplete: _validateOnEditingIfNeeded,
                   keyboardType: TextInputType.number,
@@ -133,8 +186,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               TwoItemLine(
                 TextFormField(
                   initialValue: (_refuelingAdapter.get().quantity ?? '').toString(),
-                  onSaved: (value) =>
-                      _refuelingAdapter.get().quantity = toDouble(value),
+                  onSaved: (value) => _refuelingAdapter.quantity = toDouble(value),
                   validator: _validateNumber,
                   onEditingComplete: _validateOnEditingIfNeeded,
 
@@ -167,7 +219,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               ),
               TwoItemLine(
                 TextFormField(
-                  initialValue: (_refuelingAdapter.displayedMileage ?? '').toString(),
+                  initialValue: (_mileageType == MileageType.Trip ? _refuelingAdapter.displayedTripMileage : _refuelingAdapter.displayedTotalMileage)?.toString() ?? '',
                   onSaved: _saveRefuelingDistence,
                   onEditingComplete: _validateOnEditingIfNeeded,
                   validator: _validateRefuelingDistance,
@@ -193,7 +245,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       labelText: localization.tr('distanceMeasurement')),
                 )
               ),
-              TwoItemLine(RefuelingDate(_refuelingAdapter.get()), RefuelingTime(_refuelingAdapter.get())),
+              TwoItemLine(RefuelingDate(_refuelingAdapter, _updateTimestamp), RefuelingTime(_refuelingAdapter, _updateTimestamp)),
             ]
           ),
         )

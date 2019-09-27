@@ -11,10 +11,10 @@ UnitType unitTypeFromString(String unitType) {
 }
 
 class FuelUnit {
-  int id;
-  UnitType unitType;
-  double conversionFactor;//to SI unit
-  String name;
+  final int id;
+  final UnitType unitType;
+  final double conversionFactor;//to SI unit
+  final String name;
 
   FuelUnit(this.id, this.name, this.unitType, this.conversionFactor);
 }

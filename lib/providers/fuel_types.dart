@@ -13,9 +13,7 @@ class FuelTypes extends ChangeNotifier {
     5: FuelType(5, 'electricity', UnitType.Energy),
   };
 
-  FuelType get(int id) {
-    return _items[id];
-  }
+  FuelType get(int id) => _items.containsKey(id) ? _items[id] : null;
 
   Iterable<int> get keys {
     return _items.keys;

@@ -1,9 +1,9 @@
 import './fuel_unit.dart';
 
 class FuelType {
-  int id;
-  String name;
-  UnitType unitType;
+  final int id;
+  final String name;
+  final UnitType unitType;
 
   FuelType(this.id, this.name, this.unitType);
 }

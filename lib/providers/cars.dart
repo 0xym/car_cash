@@ -17,29 +17,30 @@ class Cars extends ChangeNotifier {
   }
 
 
-  Map<int, Car> _items;//consider using list and keep deleted items as nulls
+  Map<int, Car> _items;
 
-  Car get(int id) {
-    return _items[id];
-  }
+  Car get(int id) => _items.containsKey(id) ? _items[id] : null;
 
   Iterable<int> get keys {
     return _items.keys;
   }
+
+  Map<int, int> get initialMileages => _items.map((_, car) => MapEntry<int, int>(car.id, car.initialMileage));
 
   Future<void> fetchCars() async {
     if (_items != null) {
       return;
     }
     final dataList = await DbAccess.getData(TABLE_NAME);
-    _items = dataList.asMap().map((k, v) {final car = Car.deserialize(v); _maxCarIndex = max(_maxCarIndex, car.id); return MapEntry(car.id, car);}) ?? {};
+    _items = dataList.asMap().map((k, v) {final car = Car.deserialize(v); _maxCarIndex = max(_maxCarIndex, car.id); return MapEntry(car.id, car);});//TODO - add error handling
   }
 
   Future<void> addCar(Car car) async {
     final updateDb = _items.containsKey(car.id);
     if (car.id == null) {
-      car.id = ++_maxCarIndex;
+      car = car.copyWith(id: ++_maxCarIndex);
     }
+    //if (updateDb && _items[car.id].initialMileage != car.initialMileage) { recalculate totals }
     _items[car.id] = car;
     notifyListeners();
     if (updateDb) {
