@@ -24,6 +24,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
   ScrollController _scrollController;
   Car _car;
   ScrollRequestState _scrollDownRequested = ScrollRequestState.Done;
+  static final availableColors = [Colors.blue.value, Colors.black.value, Colors.amber.value, Colors.brown.value, Colors.green.value];
 
   @override
   void initState() {
@@ -44,13 +45,15 @@ class _AddCarScreenState extends State<AddCarScreen> {
 
   void _fuelTypeChanged(int index, int fuelType, int fuelUnit) {
     if ((_car.fuelTypes[index].type != fuelType) || (_car.fuelTypes[index].unit != fuelUnit)) {
-      setState(() => _car.fuelTypes[index] = FuelTypeAndUnit(fuelType, fuelUnit));
+      final fuelTypes = _car.fuelTypes;
+      fuelTypes[index] = FuelTypeAndUnit(fuelType, fuelUnit);
+      setState(() => _car = _car.copyWith(fuelTypes: fuelTypes));
     }
   }
 
   void _deleteFuelType(int index) {
     setState(() {
-      _car.fuelTypes.removeAt(index);
+      _car = _car.copyWith(fuelTypes: _car.fuelTypes..removeAt(index));
     });
   }
 
@@ -96,6 +99,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
           () => setState(
               () => _scrollDownRequested = ScrollRequestState.Drawing));
     } else if (_scrollDownRequested == ScrollRequestState.Drawing) {
+      _scrollDownRequested = ScrollRequestState.Done;
       Future.delayed(Duration.zero, _scrollDown);
     }
     return Scaffold(
@@ -114,6 +118,12 @@ class _AddCarScreenState extends State<AddCarScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: <Widget>[
+              DropdownButtonFormField<int>(
+                items: availableColors.map((int value) => DropdownMenuItem(value: value, child: Container(decoration: BoxDecoration(color: Color(value)), margin: const EdgeInsets.symmetric(vertical: 1, horizontal: 4), ),)).toList(),
+                value: _car.color.value,
+                validator: (value) => value == null ? loc.tr('errorValueEmpty') : null,
+                onChanged: (value) => setState(() => _car = _car.copyWith(color: Color(value))),
+                decoration: InputDecoration(labelText: loc.tr('color'),fillColor: _car.color, filled: true ),),
               TextFormField(
                 initialValue: _car.brand ?? '',
                 onSaved: (value) => _car = _car.copyWith(brand: value),
@@ -177,7 +187,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
                 ),
                 onPressed: () {
                   setState(
-                      () => _car.fuelTypes.add(FuelTypeAndUnit(null, null)));
+                      () => _car = _car.copyWith(fuelTypes: _car.fuelTypes..add(FuelTypeAndUnit(null, null))));
                   _scrollDownRequested = ScrollRequestState.Init;
                 },
               ),

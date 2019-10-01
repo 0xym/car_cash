@@ -30,14 +30,7 @@ class Localization {
     return _getLanguage.containsKey(locale.languageCode);
   }
 
-  String getTranslation(String id) {
-    return _currentTranslations.containsKey(id) ? _currentTranslations[id] : _baseTranslations.containsKey(id) ? _baseTranslations[id] : 'Invalid string resource: \"$id\"';
-  }
-
   String tr(String id) => _currentTranslations.containsKey(id) ? _currentTranslations[id] : _baseTranslations.containsKey(id) ? _baseTranslations[id] : 'Invalid string resource: \"$id\"';
   String ttr(String id) => _currentTranslations.containsKey(id) ? _currentTranslations[id] : _baseTranslations.containsKey(id) ? _baseTranslations[id] : id;
   
-  String get expensesTitle => getTranslation('expensesTitle');
-  String get addExpenseTitle => getTranslation('addExpenseTitle');
-
 }

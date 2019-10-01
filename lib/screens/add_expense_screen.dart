@@ -30,12 +30,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     if (_validateForm()) {
       _formKey.currentState.save();
       final refuelings = Provider.of<Refuelings>(context, listen: false);
-      refuelings.changeRefueling(_oldRefueling.timestamp, _refuelingAdapter.get());
+      refuelings.changeRefueling(_oldRefueling?.timestamp, _refuelingAdapter.get());
       if (_mileageType == MileageType.Trip) {
         if (_oldRefueling?.carId != null && _refuelingAdapter.get().carId != _oldRefueling.carId) {
           _refuelings.recalculateTotalMileage(_oldRefueling.carId, _refuelingAdapter.getCarInitialMileage(_oldRefueling.carId));
         }
-        _refuelings.recalculateTotalMileage(_refuelingAdapter.get().carId, _refuelingAdapter.carInitialMileage);
+        _refuelings.recalculateTotalMileage(_refuelingAdapter.get().carId, _refuelingAdapter.car.initialMileage);
       }
       Navigator.of(context).pop();
     }
@@ -54,7 +54,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     if (_mileageType == MileageType.Trip || preValidation != null) {
       return preValidation;
     }
-    final minMax = _refuelings.sorouningRefuelingData(_refuelingAdapter.get(), _refuelingAdapter.carInitialMileage);
+    final minMax = _refuelings.sorouningRefuelingData(_refuelingAdapter.get(), _refuelingAdapter.car.initialMileage);
     final minValue = minMax.prevMileage;
     final maxValue = minMax.nextMileage;
     return (toDouble(value) < minValue) || (maxValue != null && toDouble(value) > maxValue)  ? 'Must be greater than ${_refuelingAdapter.displayedDistance(minValue)}${maxValue == null ?"" : " and smaller than " + _refuelingAdapter.displayedDistance(maxValue).toString()}' : null;
@@ -122,10 +122,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     // return;
     final prev = _refuelings.previousRefuelingIndexOfCar(_refuelingAdapter.get());
     if (_mileageType == MileageType.Total) {
-      _refuelingAdapter.set(tripMileage: _refuelingAdapter.get().totalMileage - (_refuelings.itemAtIndex(prev)?.totalMileage ?? _refuelingAdapter.carInitialMileage));
+      _refuelingAdapter.set(tripMileage: _refuelingAdapter.get().totalMileage - (_refuelings.itemAtIndex(prev)?.totalMileage ?? _refuelingAdapter.car.initialMileage));
     } else {
       final toFuture = _refuelings.isMovedToFuture(prevIdx: oldPrev, nextIdx: prev);
-      _refuelingAdapter.get().totalMileage = (_refuelings.itemAtIndex(prev)?.totalMileage ?? _refuelingAdapter.carInitialMileage) + _refuelingAdapter.get().tripMileage - (toFuture ? _oldRefueling?.tripMileage ?? 0 : 0);
+      _refuelingAdapter.get().totalMileage = (_refuelings.itemAtIndex(prev)?.totalMileage ?? _refuelingAdapter.car.initialMileage) + _refuelingAdapter.get().tripMileage - (toFuture ? _oldRefueling?.tripMileage ?? 0 : 0);
     }
   }
 
@@ -140,7 +140,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     }
     return Scaffold(
       appBar: AppBar(
-        title: Text(localization.addExpenseTitle),
+        title: Text(localization.tr('addExpenseTitle')),
         actions: <Widget>[
           if (_oldRefueling != null) IconButton(
             icon: Icon(Icons.delete),
@@ -158,7 +158,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           child: Column(
             children: <Widget>[
               Text(
-                localization.getTranslation('expenseType_Refueling'),
+                localization.tr('expenseType_Refueling'),
                 style: TextStyle(fontSize: 30),
               ),
               Divider(),
@@ -172,7 +172,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                       labelText:
-                          localization.getTranslation('pricePerUnit'),),), 
+                          localization.tr('pricePerUnit'),),), 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[

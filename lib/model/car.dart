@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:car_cash/utils/common.dart';
 import './distance.dart';
 import '../utils/db_names.dart';
@@ -23,19 +25,20 @@ class Car {
   static const INITIAL_MILEAGE = 'initialMeleage';
   static const FUEL_TYPE = 'fuelType';
   static const FUEL_UNIT = 'fuelUnit';
+  static const COLOR = 'color';
   static const MAX_FUEL_TYPES = 3;
 
-  //TODO - display clolor
   final int id;
   final String brand;
   final String model;
   final String name;
   final Distance distanceUnit;
   final int initialMileage;
-  final List<FuelTypeAndUnit> fuelTypes;
+  final List<FuelTypeAndUnit> _fuelTypes;
+  final Color color;
 
   static String get dbLayout {
-    return '($ID $PRIMARY_KEY, $BRAND $TEXT, $MODEL $TEXT, $NAME $TEXT, $DISTANCE_UNIT $TEXT, $INITIAL_MILEAGE $INT,' +
+    return '($ID $PRIMARY_KEY, $BRAND $TEXT, $MODEL $TEXT, $NAME $TEXT, $DISTANCE_UNIT $TEXT, $INITIAL_MILEAGE $INT, $COLOR $INT, ' +
         List<String>.generate(
                 MAX_FUEL_TYPES, (i) => '$FUEL_TYPE$i $INT, $FUEL_UNIT$i $INT')
             .join(',') +
@@ -49,6 +52,7 @@ class Car {
       String name,
       Distance distanceUnit,
       int initialMileage,
+      Color color,
       List<FuelTypeAndUnit> fuelTypes})
       : this.id = id ?? other.id,
         this.brand = brand ?? other.brand,
@@ -56,7 +60,8 @@ class Car {
         this.name = name ?? other.name,
         this.distanceUnit = distanceUnit ?? other.distanceUnit,
         this.initialMileage = initialMileage ?? other.initialMileage,
-        this.fuelTypes = fuelTypes ?? other.fuelTypes;
+        this.color = color ?? other.color,
+        this._fuelTypes = fuelTypes ?? other.fuelTypes;
 
   Car copyWith(
           {int id,
@@ -65,8 +70,9 @@ class Car {
           String name,
           Distance distanceUnit,
           int initialMileage,
+          Color color,
           List<FuelTypeAndUnit> fuelTypes}) =>
-      Car.copy(this, id: id, brand: brand, model: model, name: name, distanceUnit: distanceUnit, initialMileage: initialMileage, fuelTypes: fuelTypes);
+      Car.copy(this, id: id, brand: brand, model: model, name: name, distanceUnit: distanceUnit, initialMileage: initialMileage, fuelTypes: fuelTypes, color: color);
 
   Map<String, Object> serialize() => {
         ID: id,
@@ -74,16 +80,17 @@ class Car {
         MODEL: model,
         NAME: name,
         DISTANCE_UNIT: distanceUnit.toString(),
-        INITIAL_MILEAGE: initialMileage
+        INITIAL_MILEAGE: initialMileage,
+        COLOR: color.value,
       }
         ..addAll(Map<String, Object>.fromIterable(
             List<int>.generate(MAX_FUEL_TYPES, (i) => i),
             key: (i) => '$FUEL_TYPE$i',
-            value: (i) => fuelTypes.length > i ? fuelTypes[i].type : null))
+            value: (i) => _fuelTypes.length > i ? _fuelTypes[i].type : null))
         ..addAll(Map<String, Object>.fromIterable(
             List<int>.generate(MAX_FUEL_TYPES, (i) => i),
             key: (i) => '$FUEL_UNIT$i',
-            value: (i) => fuelTypes.length > i ? fuelTypes[i].unit : null));
+            value: (i) => _fuelTypes.length > i ? _fuelTypes[i].unit : null));
 
   Car()
       : id = null,
@@ -92,22 +99,31 @@ class Car {
         name = null,
         distanceUnit = Distance.km,
         initialMileage = null,
-        fuelTypes = [FuelTypeAndUnit(0, 0)];
+        color = null,
+        _fuelTypes = [FuelTypeAndUnit(0, 0)];
 
   Car.deserialize(Map<String, dynamic> json)
       : id = json[ID],
         brand = nullify(json[BRAND]),
         model = nullify(json[MODEL]),
         name = json[NAME],
-        distanceUnit = Distance.fromString(json[DISTANCE_UNIT]),
+        distanceUnit = json[DISTANCE_UNIT] == null ? null : Distance.fromString(json[DISTANCE_UNIT]),
         initialMileage = json[INITIAL_MILEAGE],
-        fuelTypes = List<FuelTypeAndUnit>.generate(MAX_FUEL_TYPES,
-            (i) => FuelTypeAndUnit(json['$FUEL_TYPE$i'], json['$FUEL_UNIT$i']))
-          ..removeWhere((item) => item.type == null || item.unit == null);
+        color = json[COLOR] == null ? null : Color(json[COLOR]),
+        _fuelTypes = List<FuelTypeAndUnit>.generate(MAX_FUEL_TYPES,
+            (i) => FuelTypeAndUnit(json['$FUEL_TYPE$i'], json['$FUEL_UNIT$i'])) {
+    sanitize();
+  }
 
   void sanitize() {
-    fuelTypes.removeWhere((item) => item.type == null || item.unit == null);
+    _fuelTypes.removeWhere((item) => item.type == null || item.unit == null);
+    //TODO - remove duplicated fuel types
+    if (_fuelTypes.length == 0) {
+      _fuelTypes.add(FuelTypeAndUnit(null, null));
+    }
   }
+
+  List<FuelTypeAndUnit> get fuelTypes => _fuelTypes.toList();
 
   String get brandAndModel {
     return brand == null ? model : model == null ? brand : '$brand $model';

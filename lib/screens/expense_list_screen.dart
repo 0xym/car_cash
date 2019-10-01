@@ -15,9 +15,8 @@ class ExpenseListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final localization = Localization.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(localization.expensesTitle), actions: <Widget>[
+      appBar: AppBar(title: Text(localization.tr('expensesTitle')), actions: <Widget>[
         IconButton(icon: Icon(Icons.directions_car), onPressed: () => Navigator.of(context).pushNamed(CarListScreen.routeName),),
-        // IconButton(icon: Icon(Icons.delete_forever), onPressed: () => Provider.of<Refuelings>(context, listen: false).clear(),),
       ],),
       body: FutureBuilder(future: Provider.of<Refuelings>(context).fetchRefuelings(Provider.of<Cars>(context)),
         builder: (ctx, data) => data.connectionState == ConnectionState.waiting ? Center(child: CircularProgressIndicator(),) : 

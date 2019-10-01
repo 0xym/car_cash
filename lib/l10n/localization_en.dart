@@ -10,10 +10,17 @@ class LocalizationEn extends LocalizationBase {
     'pricePerUnit': 'Price per unit',
     'quantity': 'Quantity',
     'liter': 'Liter',
-    'literSymbol' : 'l',
+    'literAbbr': 'L',
     'gallon_us': 'Gallon(US)',
+    'gallon_usAbbr': 'Gal(US)',
     'gallon_uk': 'Gallon(UK)',
+    'gallon_ukAbbr': 'Gal(UK)',
     'cubicMeter': 'Cubic meter',
+    'cubicMeterAbbr': 'm3',
+    'kilogram': 'Kilogram',
+    'kilogramAbbr': 'kg',
+    'kiloWattHour': 'kWh',
+    'kiloWattHourAbbr': 'kWh',
     'tripDistance': 'Trip distance',
     'totalDistance': 'Total distance',
     'mileageTotal': 'Total mileage',
@@ -35,7 +42,6 @@ class LocalizationEn extends LocalizationBase {
     'unitMile': 'Miles',
     'km': 'km',
     'mile': 'mile',
-    'kiloWattHour': 'kWh',
     'initialMileage': 'Initial mileage',
     'addFuelType': 'Add another fuel type',
     // 'errorNameEmpty': 'Name must be provided',
@@ -55,5 +61,6 @@ class LocalizationEn extends LocalizationBase {
     'CNG': 'CNG',//compressed natural gas
     'hydrogen': 'Hydrogen',
     'electricity': 'Electricity',
+    'color': 'Color',
   };
 }

@@ -15,6 +15,7 @@ class FuelUnit {
   final UnitType unitType;
   final double conversionFactor;//to SI unit
   final String name;
+  final String nameAbbreviated;
 
-  FuelUnit(this.id, this.name, this.unitType, this.conversionFactor);
+  FuelUnit(this.id, this.name, this.nameAbbreviated, this.unitType, this.conversionFactor);
 }
