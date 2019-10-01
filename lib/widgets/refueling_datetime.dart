@@ -2,8 +2,9 @@ import 'package:car_cash/adapters/refueling_adapter.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../l10n/localization.dart';
-import '../model/refueling.dart';
 import '../utils/common.dart';
+import '../utils/global_preferences.dart';
+import '../model/preferences.dart';
 
 typedef TimestampSetter = Function(DateTime);
 
@@ -15,6 +16,7 @@ abstract class _RefuelingDateTime extends StatefulWidget {
 
 abstract class _RefuelingDateTimeState extends State<_RefuelingDateTime> {
   TextEditingController _controller;
+  final preferences = Preferences();
 
   @override
   void initState() {
@@ -66,7 +68,7 @@ class _RefuelingDateState extends _RefuelingDateTimeState {
     }
   }
 
-  String get _format => 'yyyy-MM-dd';
+  String get _format => preferences.get(DATE_FORMAT);
   String get _label => 'date';
   void _showPicker() => showDatePicker(context: context, initialDate: _old, firstDate: DateTime(2000), lastDate: today()).then(_updateDate);
 }
@@ -84,7 +86,7 @@ class _RefuelingTimeState extends _RefuelingDateTimeState {
     }
   }
 
-  String get _format => 'HH:mm';
+  String get _format => preferences.get(TIME_FORMAT);
   String get _label => 'time';
   void _showPicker() => showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(_old)).then(_updateTime);
 }

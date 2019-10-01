@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../l10n/localization.dart';
 import '../model/refueling.dart';
+import '../model/preferences.dart';
 import '../providers/refuelings.dart';
 import '../utils/common.dart';
+import '../utils/global_preferences.dart';
 import '../adapters/refueling_adapter.dart';
 import '../widgets/refueling_datetime.dart';
 import '../widgets/two_item_line.dart';
@@ -19,7 +21,8 @@ enum MileageType { Trip, Total }
 
 class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _homeCurency = 'PLN';
+  final _prefs = Preferences();
+  get _homeCurency => _prefs.get(CURRENCY);
   RefuelingAdapter _refuelingAdapter;
   Refueling _oldRefueling;
   MileageType _mileageType = MileageType.Trip;

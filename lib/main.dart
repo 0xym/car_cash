@@ -7,8 +7,14 @@ import './providers/fuel_units.dart';
 import './providers/cars.dart';
 import './screens/add_car_screen.dart';
 import './screens/expense_list_screen.dart';
+import './model/shared_prefs.dart';
 
 void main() => runApp(MyApp());
+
+Future<void> fetchMandatoryData(Cars cars) async {
+  await SharedPrefs.aget();
+  await cars.fetchCars();
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -30,7 +36,7 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
         ),
         home: Consumer<Cars>(builder: (ctx, cars, child) => FutureBuilder(
-          future: cars.fetchCars(), 
+          future: fetchMandatoryData(cars), 
           builder: (c, data) => data.connectionState == ConnectionState.waiting ? 
             Center(child: CircularProgressIndicator()) :
             cars.keys.length == 0 ? AddCarScreen.mainScreen() : ExpenseListScreen() ,),),

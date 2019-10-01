@@ -3,7 +3,9 @@ import 'package:intl/intl.dart';
 import '../l10n/localization.dart';
 import '../adapters/refueling_adapter.dart';
 import '../model/car.dart';
+import '../model/preferences.dart';
 import '../screens/add_expense_screen.dart';
+import '../utils/global_preferences.dart';
 
 class ExpenseItem extends StatelessWidget {
   
@@ -76,14 +78,15 @@ class VerticalSeparator extends StatelessWidget {
 }
 
 class RefuelingDetails extends StatelessWidget {
-  const RefuelingDetails({
+  RefuelingDetails({
     @required RefuelingAdapter refuelingAdapter,
   }) : _refuelingAdapter = refuelingAdapter;
+  final _prefs = Preferences();
   static const currencyDigits = 2;
   static const fuelingPrecision = 2;
-  final _homeCurency = 'PLN';
-  final _dateFormat = 'yyyy-MM-dd';
-  final _timeFormat = 'HH:mm';
+  get _homeCurency => _prefs.get(CURRENCY);
+  get _dateFormat => _prefs.get(DATE_FORMAT);
+  get _timeFormat => _prefs.get(TIME_FORMAT);
   final RefuelingAdapter _refuelingAdapter;
   static const widgetTextLines = 3;
 
