@@ -8,9 +8,11 @@ import '../providers/fuel_types.dart';
 import '../model/car.dart';
 import '../model/fuel_type.dart';
 import '../model/fuel_unit.dart';
+import '../model/preferences.dart';
 import '../model/refueling.dart';
 
 class RefuelingAdapter {
+  // final _prefs = Preferences();
   final Localization _loc;
   Refueling _refueling;
   final Cars _cars;
@@ -25,7 +27,7 @@ class RefuelingAdapter {
         _cars = Provider.of(context, listen: false),
         _fuelTypes = Provider.of(context, listen: false),
         _fuelUnits = Provider.of(context, listen: false),
-        _refueling = refueling ?? Refueling(carId: 1, timestamp: DateTime.now()) {//TODO get the right id
+        _refueling = refueling ?? Refueling(carId: Preferences().get(DEFAULT_CAR), timestamp: DateTime.now()) {
     _car = _cars.get(_refueling.carId);
     _fetchFuelInfo();
     _sanitizeFuelInfo();

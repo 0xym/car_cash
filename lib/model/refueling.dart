@@ -29,7 +29,7 @@ class Refueling {
   }
 
   Refueling(
-      {@required this.carId,
+      {this.carId = -1,
       this.exchangeRate = 1.0,
       this.fuelTypeId,
       this.totalMileage,

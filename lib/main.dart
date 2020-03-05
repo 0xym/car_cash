@@ -19,7 +19,9 @@ Future<void> fetchMandatoryData(Cars cars) async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
+    return FutureBuilder(future: SharedPrefs.aget(), builder: (ctx, data) => data.connectionState == ConnectionState.waiting ? 
+            Center(child: CircularProgressIndicator()) :
+    MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: FuelTypes() ,),
         ChangeNotifierProvider.value(value: FuelUnits() ,),
@@ -36,12 +38,12 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
         ),
         home: Consumer<Cars>(builder: (ctx, cars, child) => FutureBuilder(
-          future: fetchMandatoryData(cars), 
+          future: cars.fetchCars(), 
           builder: (c, data) => data.connectionState == ConnectionState.waiting ? 
             Center(child: CircularProgressIndicator()) :
             cars.keys.length == 0 ? AddCarScreen.mainScreen() : ExpenseListScreen() ,),),
         routes: Routes.routes,
       ),
-    );
+    ));
   }
 }

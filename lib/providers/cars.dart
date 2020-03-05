@@ -2,12 +2,15 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import '../model/car.dart';
+import '../model/preferences.dart';
 import '../utils/db_access.dart';
 
 class Cars extends ChangeNotifier {
   static const TABLE_NAME = 'cars';
   static bool _dbCreationSubscribed = false;
   int _maxCarIndex = 0;
+  final _prefs = Preferences();
+
 
   Cars() {
     if (!_dbCreationSubscribed) {
@@ -42,6 +45,9 @@ class Cars extends ChangeNotifier {
     }
     //if (updateDb && _items[car.id].initialMileage != car.initialMileage) { recalculate totals }
     _items[car.id] = car;
+    if (_items.length == 1) {
+      _prefs.set(DEFAULT_CAR, car.id);
+    }
     notifyListeners();
     if (updateDb) {
       DbAccess.update(TABLE_NAME, car.serialize(), Car.ID, car.id);
@@ -55,6 +61,9 @@ class Cars extends ChangeNotifier {
       return;
     }
     _items.remove(id);
+    if (id == _prefs.get(DEFAULT_CAR)) {
+      _prefs.set(DEFAULT_CAR, _items.length == 1 ? _items[0].id : -1);
+    }
     notifyListeners();
     DbAccess.delete(TABLE_NAME, Car.ID, id);
   }

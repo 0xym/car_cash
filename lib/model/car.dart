@@ -1,7 +1,8 @@
 import 'dart:ui';
 
-import 'package:car_cash/utils/common.dart';
 import './distance.dart';
+import './preferences.dart';
+import '../utils/common.dart';
 import '../utils/db_names.dart';
 
 class FuelTypeAndUnit {
@@ -15,6 +16,8 @@ class FuelTypeAndUnit {
   FuelTypeAndUnit withType(int type) => FuelTypeAndUnit(type, this.unit);
   FuelTypeAndUnit withUnit(int unit) => FuelTypeAndUnit(this.type, unit);
 }
+
+const DEFAULT_CAR = Preference('defaultCar', int, -1);
 
 class Car {
   static const ID = 'id';
