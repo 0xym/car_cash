@@ -106,6 +106,19 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     }
   }
 
+  Widget _numberForm(
+          {@required double initialValue,
+          @required void Function(String) onSaved,
+          @required String labelText}) =>
+      TextFormField(
+        initialValue: (initialValue ?? '').toString(),
+        onSaved: onSaved,
+        validator: _validator.validateNumber,
+        onEditingComplete: _validateOnEditingIfNeeded,
+        keyboardType: TextInputType.number,
+        decoration: InputDecoration(labelText: labelText),
+      );
+
   @override
   Widget build(BuildContext context) {
     final localization = Localization.of(context);
@@ -142,18 +155,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 Divider(),
                 //TODO: add car selection
                 TwoItemLine(
-                    TextFormField(
-                      initialValue: (_refuelingAdapter.get().pricePerUnit ?? '')
-                          .toString(),
-                      onSaved: (value) =>
-                          _refuelingAdapter.pricePerUnit = toDouble(value),
-                      validator: _validator.validateNumber,
-                      onEditingComplete: _validateOnEditingIfNeeded,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: localization.tr('pricePerUnit'),
-                      ),
-                    ),
+                    _numberForm(
+                        initialValue: _refuelingAdapter.get().pricePerUnit,
+                        onSaved: (value) =>
+                            _refuelingAdapter.pricePerUnit = toDouble(value),
+                        labelText: localization.tr('pricePerUnit')),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: <Widget>[
@@ -165,18 +171,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       ],
                     )),
                 TwoItemLine(
-                    TextFormField(
-                      initialValue:
-                          (_refuelingAdapter.get().quantity ?? '').toString(),
-                      onSaved: (value) =>
-                          _refuelingAdapter.quantity = toDouble(value),
-                      validator: _validator.validateNumber,
-                      onEditingComplete: _validateOnEditingIfNeeded,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: localization.tr('quantity'),
-                      ),
-                    ),
+                    _numberForm(
+                        initialValue: _refuelingAdapter.get().quantity,
+                        onSaved: (value) =>
+                            _refuelingAdapter.quantity = toDouble(value),
+                        labelText: localization.tr('quantity')),
                     DropdownButtonFormField<int>(
                       items: _refuelingAdapter.fuelUnits
                           .map((f) => DropdownMenuItem(
@@ -190,12 +189,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       value: _refuelingAdapter.fuelUnit.id,
                     )),
                 TwoItemLine(
-                    TextFormField(
-                      initialValue: '',
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                          labelText: localization.tr('totalPrice')),
-                    ),
+                    _numberForm(
+                        initialValue: null,
+                        onSaved: (_) {},
+                        labelText: localization.tr('totalPrice')),
                     DropdownButtonFormField<int>(
                       items: _refuelingAdapter.fuelTypes
                           .map((f) => DropdownMenuItem(
