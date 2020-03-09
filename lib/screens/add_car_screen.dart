@@ -239,11 +239,10 @@ class _AddCarScreenState extends State<AddCarScreen> {
                             _car.fuelTypes.length > 1 ? _deleteFuelType : null,
                       )),
               if (_car.fuelTypes.length < Car.MAX_FUEL_TYPES)
-                FlatButton(
-                  child: Text(
-                    loc.tr('addFuelType'),
-                    style: TextStyle(color: Theme.of(context).primaryColor),
-                  ),
+                IconButton(
+                  icon: Icon(Icons.add_circle),
+                  color: Theme.of(context).primaryColor,
+                  tooltip: loc.tr('addFuelType'),
                   onPressed: () {
                     setState(() => _car = _car.copyWith(
                         fuelTypes: _car.fuelTypes
