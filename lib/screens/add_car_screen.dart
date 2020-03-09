@@ -24,7 +24,13 @@ class _AddCarScreenState extends State<AddCarScreen> {
   ScrollController _scrollController;
   Car _car;
   ScrollRequestState _scrollDownRequested = ScrollRequestState.Done;
-  static final availableColors = [Colors.blue.value, Colors.black.value, Colors.amber.value, Colors.brown.value, Colors.green.value];
+  static final availableColors = [
+    Colors.blue.value,
+    Colors.black.value,
+    Colors.amber.value,
+    Colors.brown.value,
+    Colors.green.value
+  ];
 
   @override
   void initState() {
@@ -44,7 +50,8 @@ class _AddCarScreenState extends State<AddCarScreen> {
   }
 
   void _fuelTypeChanged(int index, int fuelType, int fuelUnit) {
-    if ((_car.fuelTypes[index].type != fuelType) || (_car.fuelTypes[index].unit != fuelUnit)) {
+    if ((_car.fuelTypes[index].type != fuelType) ||
+        (_car.fuelTypes[index].unit != fuelUnit)) {
       final fuelTypes = _car.fuelTypes;
       fuelTypes[index] = FuelTypeAndUnit(fuelType, fuelUnit);
       setState(() => _car = _car.copyWith(fuelTypes: fuelTypes));
@@ -62,10 +69,12 @@ class _AddCarScreenState extends State<AddCarScreen> {
       _formKey.currentState.save();
       final cars = Provider.of<Cars>(context);
       final oldMileage = cars.get(_car.id)?.initialMileage;
-      final requestUpdate = (oldMileage != null) && (oldMileage  != _car.initialMileage);
+      final requestUpdate =
+          (oldMileage != null) && (oldMileage != _car.initialMileage);
       cars.addCar(_car..sanitize());
       if (requestUpdate) {
-        Provider.of<Refuelings>(context).recalculateTotalMileage(_car.id, _car.initialMileage);
+        Provider.of<Refuelings>(context)
+            .recalculateTotalMileage(_car.id, _car.initialMileage);
       }
       if (widget._asMainScreen) {
         Navigator.of(context).pushReplacementNamed('/');
@@ -77,14 +86,25 @@ class _AddCarScreenState extends State<AddCarScreen> {
 
   void _deleteRequest() {
     final loc = Localization.of(context);
-    showDialog(context: context, builder: (ctx) => AlertDialog(title: Text(loc.tr('deleteCarConfirmation')), actions: <Widget>[
-      FlatButton(child: Text(loc.tr('cancelAction')), onPressed: () => Navigator.of(context).pop(),),
-      FlatButton(child: Text(loc.tr('deleteAction')), onPressed: () {
-        Provider.of<Cars>(context).delete(_car.id);
-        Navigator.of(context).pop();
-        Navigator.of(context).pop();
-      } ,),
-    ],));
+    showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+              title: Text(loc.tr('deleteCarConfirmation')),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text(loc.tr('cancelAction')),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                FlatButton(
+                  child: Text(loc.tr('deleteAction')),
+                  onPressed: () {
+                    Provider.of<Cars>(context).delete(_car.id);
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ));
   }
 
   @override
@@ -106,9 +126,15 @@ class _AddCarScreenState extends State<AddCarScreen> {
       appBar: AppBar(
         title: Text(loc.tr('addCarTitle')),
         actions: <Widget>[
-          if (_car.id != null) 
-          IconButton(icon: Icon(Icons.delete), onPressed: _deleteRequest,),
-          IconButton(icon: Icon(Icons.check), onPressed: _saveForm,)
+          if (_car.id != null)
+            IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: _deleteRequest,
+            ),
+          IconButton(
+            icon: Icon(Icons.check),
+            onPressed: _saveForm,
+          )
         ],
       ),
       body: SingleChildScrollView(
@@ -119,11 +145,28 @@ class _AddCarScreenState extends State<AddCarScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: <Widget>[
               DropdownButtonFormField<int>(
-                items: availableColors.map((int value) => DropdownMenuItem(value: value, child: Container(decoration: BoxDecoration(color: Color(value)), margin: const EdgeInsets.symmetric(vertical: 1, horizontal: 4), ),)).toList(),
+                items: availableColors
+                    .map((int value) => DropdownMenuItem(
+                          value: value,
+                          child: Container(
+                            color: Color(value),
+                            child: Container(
+                              width: MediaQuery.of(context).size.width - 60,
+                              height: 20,
+                            ),
+                            // decoration: BoxDecoration(color: Color(value)),
+                            margin: const EdgeInsets.symmetric(
+                                vertical: 1, horizontal: 4),
+                          ),
+                        ))
+                    .toList(),
                 value: _car.color.value,
-                validator: (value) => value == null ? loc.tr('errorValueEmpty') : null,
-                onChanged: (value) => setState(() => _car = _car.copyWith(color: Color(value))),
-                decoration: InputDecoration(labelText: loc.tr('color'),fillColor: _car.color, filled: true ),),
+                validator: (value) =>
+                    value == null ? loc.tr('errorValueEmpty') : null,
+                onChanged: (value) =>
+                    setState(() => _car = _car.copyWith(color: Color(value))),
+                decoration: InputDecoration(labelText: loc.tr('color')),
+              ),
               TextFormField(
                 initialValue: _car.brand ?? '',
                 onSaved: (value) => _car = _car.copyWith(brand: value),
@@ -143,7 +186,8 @@ class _AddCarScreenState extends State<AddCarScreen> {
               TextFormField(
                 initialValue: _car.name ?? '',
                 keyboardType: TextInputType.text,
-                validator: (value) => value.isEmpty ? loc.tr('errorValueEmpty') : null,
+                validator: (value) =>
+                    value.isEmpty ? loc.tr('errorValueEmpty') : null,
                 onSaved: (value) => _car = _car.copyWith(name: value),
                 decoration: InputDecoration(labelText: loc.tr('carName')),
               ),
@@ -159,15 +203,28 @@ class _AddCarScreenState extends State<AddCarScreen> {
                   ),
                 ],
                 value: _car.distanceUnit,
-                validator: (value) => value == null ? loc.tr('errorValueEmpty') : null,
-                onChanged: (value) => setState(() => _car = _car.copyWith(distanceUnit: value)),
+                validator: (value) =>
+                    value == null ? loc.tr('errorValueEmpty') : null,
+                onChanged: (value) =>
+                    setState(() => _car = _car.copyWith(distanceUnit: value)),
                 decoration: InputDecoration(labelText: loc.tr('distanceUnit')),
               ),
               TextFormField(
-                initialValue: _car.distanceUnit?.toUnit(_car.initialMileage?.toDouble())?.toString() ?? '',
+                initialValue: _car.distanceUnit
+                        ?.toUnit(_car.initialMileage?.toDouble())
+                        ?.toString() ??
+                    '',
                 keyboardType: TextInputType.number,
-                onSaved: (value) => _car = _car.copyWith(initialMileage: _car.distanceUnit?.toSi(toDouble(value))?.round() ?? 0),
-                validator: (value) => value.isEmpty ? null : toDouble(value) == null ? loc.tr('errorInvalidNumber') : toDouble(value) <= 0.0 ? loc.tr('errorMustBePositive') : null,
+                onSaved: (value) => _car = _car.copyWith(
+                    initialMileage:
+                        _car.distanceUnit?.toSi(toDouble(value))?.round() ?? 0),
+                validator: (value) => value.isEmpty
+                    ? null
+                    : toDouble(value) == null
+                        ? loc.tr('errorInvalidNumber')
+                        : toDouble(value) <= 0.0
+                            ? loc.tr('errorMustBePositive')
+                            : null,
                 decoration:
                     InputDecoration(labelText: loc.tr('initialMileage')),
               ),
@@ -178,19 +235,22 @@ class _AddCarScreenState extends State<AddCarScreen> {
                         selectedType: _car.fuelTypes[idx].type,
                         selectedUnit: _car.fuelTypes[idx].unit,
                         onChange: _fuelTypeChanged,
-                        onDeleted: _car.fuelTypes.length > 1 ? _deleteFuelType : null,
+                        onDeleted:
+                            _car.fuelTypes.length > 1 ? _deleteFuelType : null,
                       )),
-              if (_car.fuelTypes.length < Car.MAX_FUEL_TYPES) FlatButton(
-                child: Text(
-                  loc.tr('addFuelType'),
-                  style: TextStyle(color: Theme.of(context).primaryColor),
+              if (_car.fuelTypes.length < Car.MAX_FUEL_TYPES)
+                FlatButton(
+                  child: Text(
+                    loc.tr('addFuelType'),
+                    style: TextStyle(color: Theme.of(context).primaryColor),
+                  ),
+                  onPressed: () {
+                    setState(() => _car = _car.copyWith(
+                        fuelTypes: _car.fuelTypes
+                          ..add(FuelTypeAndUnit(null, null))));
+                    _scrollDownRequested = ScrollRequestState.Init;
+                  },
                 ),
-                onPressed: () {
-                  setState(
-                      () => _car = _car.copyWith(fuelTypes: _car.fuelTypes..add(FuelTypeAndUnit(null, null))));
-                  _scrollDownRequested = ScrollRequestState.Init;
-                },
-              ),
             ],
           ),
         ),
