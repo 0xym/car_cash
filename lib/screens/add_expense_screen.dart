@@ -1,3 +1,5 @@
+import 'package:car_cash/model/car.dart';
+import 'package:car_cash/providers/cars.dart';
 import 'package:car_cash/utils/data_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -30,6 +32,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   bool _validationFailed = false;
   Refuelings _refuelings;
   DataValidator _validator;
+  Cars _cars;
 
   void _saveRefueling() {
     if (_validateForm()) {
@@ -128,6 +131,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       _oldRefueling = _refuelingAdapter?.get();
       _refuelingAdapter ??= RefuelingAdapter(context, null);
       _validator ??= DataValidator(context);
+      _cars = Provider.of<Cars>(context);
     }
     return Scaffold(
         appBar: AppBar(
@@ -152,8 +156,29 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   localization.tr('expenseType_Refueling'),
                   style: TextStyle(fontSize: 30),
                 ),
-                Divider(),
-                //TODO: add car selection
+                DropdownButtonFormField<int>(
+                  items: _cars.keys
+                      .map(
+                        (id) => DropdownMenuItem(
+                          value: id,
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: _cars.get(id).color,
+                            ),
+                            title: Text(_cars.get(id).name),
+                            subtitle: _cars.get(id).brandAndModel == null
+                                ? null
+                                : Text(_cars.get(id).brandAndModel),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  value: _prefs.get(DEFAULT_CAR),
+                  isExpanded: true,
+                  onChanged: (id) =>
+                      setState(() => _refuelingAdapter.set(carId: id)),
+                      decoration: InputDecoration(labelText: localization.tr('selectedCar')),
+                ),
                 TwoItemLine(
                     _numberForm(
                         initialValue: _refuelingAdapter.get().pricePerUnit,

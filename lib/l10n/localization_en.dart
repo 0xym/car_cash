@@ -62,5 +62,6 @@ class LocalizationEn extends LocalizationBase {
     'hydrogen': 'Hydrogen',
     'electricity': 'Electricity',
     'color': 'Color',
+    'selectedCar': 'Car'
   };
 }
