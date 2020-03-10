@@ -24,6 +24,10 @@ class Refueling {
   final String note;
   final int carId;
 
+  double get totalPrice => (pricePerUnit == null || quantity == null)
+      ? null
+      : quantity * pricePerUnit;
+
   static String get dbLayout {
     return '($TIMESTAMP $INT $PRIMARY_KEY, $CAR_ID $INT, $EXCHANGE_RATE $REAL, $FUEL_TYPE_ID $INT, $MILEAGE $INT, $NOTE $TEXT, $PRICE_PER_UNIT $REAL, $QUANTITY REAL, $FUEL_UNIT_ID INT)';
   }
@@ -38,66 +42,71 @@ class Refueling {
       this.pricePerUnit,
       this.quantity,
       this.timestamp,
-      this.fuelUnitId
-      });
+      this.fuelUnitId});
 
-  Refueling.copy(
-    Refueling other,
-    {int carId,
-    double exchangeRate,
-    int fuelTypeId,
-    int fuelUnitId,
-    int tripMileage,
-    String note,
-    double pricePerUnit,
-    double quantity,
-    DateTime timestamp}) : 
-    this.carId = carId ?? other.carId,
-    this.exchangeRate = exchangeRate ?? other.exchangeRate,
-    this.fuelTypeId = fuelTypeId ?? other.fuelTypeId,
-    this.fuelUnitId = fuelUnitId ?? other.fuelUnitId,
-    this.tripMileage = tripMileage ?? other.tripMileage,
-    this.note = note ?? other.note,
-    this.pricePerUnit = pricePerUnit ?? other.pricePerUnit,
-    this.quantity = quantity ?? other.quantity,
-    this.timestamp = timestamp ?? other.timestamp,
-    this.totalMileage = other.totalMileage;
+  Refueling.copy(Refueling other,
+      {int carId,
+      double exchangeRate,
+      int fuelTypeId,
+      int fuelUnitId,
+      int tripMileage,
+      String note,
+      double pricePerUnit,
+      double quantity,
+      DateTime timestamp})
+      : this.carId = carId ?? other.carId,
+        this.exchangeRate = exchangeRate ?? other.exchangeRate,
+        this.fuelTypeId = fuelTypeId ?? other.fuelTypeId,
+        this.fuelUnitId = fuelUnitId ?? other.fuelUnitId,
+        this.tripMileage = tripMileage ?? other.tripMileage,
+        this.note = note ?? other.note,
+        this.pricePerUnit = pricePerUnit ?? other.pricePerUnit,
+        this.quantity = quantity ?? other.quantity,
+        this.timestamp = timestamp ?? other.timestamp,
+        this.totalMileage = other.totalMileage;
 
-  Refueling.nullify(
-    Refueling other,
-    {bool carId,
-    bool exchangeRate,
-    bool fuelTypeId,
-    bool fuelUnitId,
-    bool tripMileage,
-    bool note,
-    bool pricePerUnit,
-    bool quantity,
-    bool timestamp}) : 
-    this.carId = carId == true ? null : other.carId,
-    this.exchangeRate = exchangeRate == true ? null : other.exchangeRate,
-    this.fuelTypeId = fuelTypeId == true ? null : other.fuelTypeId,
-    this.fuelUnitId = fuelUnitId == true ? null : other.fuelUnitId,
-    this.tripMileage = tripMileage == true ? null : other.tripMileage,
-    this.note = note == true ? null : other.note,
-    this.pricePerUnit = pricePerUnit == true ? null : other.pricePerUnit,
-    this.quantity = quantity == true ? null : other.quantity,
-    this.timestamp = timestamp == true ? null : other.timestamp,
-    this.totalMileage = other.totalMileage;
+  Refueling.nullify(Refueling other,
+      {bool carId,
+      bool exchangeRate,
+      bool fuelTypeId,
+      bool fuelUnitId,
+      bool tripMileage,
+      bool note,
+      bool pricePerUnit,
+      bool quantity,
+      bool timestamp})
+      : this.carId = carId == true ? null : other.carId,
+        this.exchangeRate = exchangeRate == true ? null : other.exchangeRate,
+        this.fuelTypeId = fuelTypeId == true ? null : other.fuelTypeId,
+        this.fuelUnitId = fuelUnitId == true ? null : other.fuelUnitId,
+        this.tripMileage = tripMileage == true ? null : other.tripMileage,
+        this.note = note == true ? null : other.note,
+        this.pricePerUnit = pricePerUnit == true ? null : other.pricePerUnit,
+        this.quantity = quantity == true ? null : other.quantity,
+        this.timestamp = timestamp == true ? null : other.timestamp,
+        this.totalMileage = other.totalMileage;
 
   Refueling copyWith(
-    {int carId,
-    double exchangeRate,
-    int fuelTypeId,
-    int fuelUnitId,
-    int tripMileage,
-    String note,
-    double pricePerUnit,
-    double quantity,
-    DateTime timestamp}) {
-      return Refueling.copy(this, carId: carId, exchangeRate: exchangeRate, fuelTypeId: fuelTypeId, fuelUnitId: fuelUnitId, tripMileage: tripMileage, note: note, pricePerUnit: pricePerUnit, quantity: quantity, timestamp: timestamp);
-    }
-
+      {int carId,
+      double exchangeRate,
+      int fuelTypeId,
+      int fuelUnitId,
+      int tripMileage,
+      String note,
+      double pricePerUnit,
+      double quantity,
+      DateTime timestamp}) {
+    return Refueling.copy(this,
+        carId: carId,
+        exchangeRate: exchangeRate,
+        fuelTypeId: fuelTypeId,
+        fuelUnitId: fuelUnitId,
+        tripMileage: tripMileage,
+        note: note,
+        pricePerUnit: pricePerUnit,
+        quantity: quantity,
+        timestamp: timestamp);
+  }
 
   Refueling.deserialize(Map<String, Object> json)
       : carId = json[CAR_ID],
@@ -111,16 +120,16 @@ class Refueling {
         fuelUnitId = json[FUEL_UNIT_ID];
 
   Map<String, Object> serialize() => {
-    CAR_ID: carId,
-    EXCHANGE_RATE: exchangeRate,
-    FUEL_TYPE_ID: fuelTypeId,
-    MILEAGE: tripMileage,
-    NOTE: note,
-    PRICE_PER_UNIT: pricePerUnit,
-    QUANTITY: quantity,
-    TIMESTAMP: serializedTimestamp,
-    FUEL_UNIT_ID: fuelUnitId
-  };
+        CAR_ID: carId,
+        EXCHANGE_RATE: exchangeRate,
+        FUEL_TYPE_ID: fuelTypeId,
+        MILEAGE: tripMileage,
+        NOTE: note,
+        PRICE_PER_UNIT: pricePerUnit,
+        QUANTITY: quantity,
+        TIMESTAMP: serializedTimestamp,
+        FUEL_UNIT_ID: fuelUnitId
+      };
 
   static int serializeTimestamp(DateTime time) {
     return time.millisecondsSinceEpoch;

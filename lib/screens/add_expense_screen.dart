@@ -115,7 +115,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           @required String labelText}) =>
       TextFormField(
         initialValue: (initialValue ?? '').toString(),
-        onSaved: onSaved,
+        // onSaved: onSaved,
+        onFieldSubmitted: onSaved,
         validator: _validator.validateNumber,
         onEditingComplete: _validateOnEditingIfNeeded,
         keyboardType: TextInputType.number,
@@ -177,7 +178,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   isExpanded: true,
                   onChanged: (id) =>
                       setState(() => _refuelingAdapter.set(carId: id)),
-                      decoration: InputDecoration(labelText: localization.tr('selectedCar')),
+                  decoration: InputDecoration(
+                      labelText: localization.tr('selectedCar')),
                 ),
                 TwoItemLine(
                     _numberForm(
@@ -215,8 +217,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                     )),
                 TwoItemLine(
                     _numberForm(
-                        initialValue: null,
-                        onSaved: (_) {},
+                        initialValue: _refuelingAdapter.get().totalPrice,
+                        onSaved: (value) =>
+                            _refuelingAdapter.totalPrice = toDouble(value),
                         labelText: localization.tr('totalPrice')),
                     DropdownButtonFormField<int>(
                       items: _refuelingAdapter.fuelTypes
