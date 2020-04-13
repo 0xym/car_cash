@@ -25,11 +25,18 @@ class _AddCarScreenState extends State<AddCarScreen> {
   Car _car;
   ScrollRequestState _scrollDownRequested = ScrollRequestState.Done;
   static final availableColors = [
-    Colors.blue.value,
-    Colors.black.value,
-    Colors.amber.value,
-    Colors.brown.value,
-    Colors.green.value
+    Colors.blue,
+    Colors.green,
+    Colors.yellow,
+    Colors.amber,
+    Colors.orange,
+    Colors.red,
+    Colors.pink,
+    Colors.brown,
+    Colors.blueGrey,
+    Colors.grey,
+    Colors.white,
+    Colors.black,
   ];
 
   @override
@@ -146,10 +153,10 @@ class _AddCarScreenState extends State<AddCarScreen> {
             children: <Widget>[
               DropdownButtonFormField<int>(
                 items: availableColors
-                    .map((int value) => DropdownMenuItem(
-                          value: value,
+                    .map((Color color) => DropdownMenuItem(
+                          value: color.value,
                           child: Container(
-                            color: Color(value),
+                            color: color,
                             child: Container(
                               width: MediaQuery.of(context).size.width - 60,
                               height: 20,
@@ -160,7 +167,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
                           ),
                         ))
                     .toList(),
-                value: _car.color.value,
+                value: _car.color?.value,
                 validator: (value) =>
                     value == null ? loc.tr('errorValueEmpty') : null,
                 onChanged: (value) =>
