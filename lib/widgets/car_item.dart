@@ -13,6 +13,7 @@ class CarItem extends StatelessWidget {
       leading: IconButton(icon: Icon(_car.id == _defaultCar ? Icons.radio_button_checked : Icons.radio_button_unchecked), onPressed: () => _setDefault(_car.id),),
       title: Text(_car.name), 
       subtitle: _car.brandAndModel == null ? null : Text(_car.brandAndModel),
+      trailing: CircleAvatar(backgroundColor: _car.color,),
       onTap: () => Navigator.of(context).pushNamed(AddCarScreen.routeName, arguments: _car),
     );
   }

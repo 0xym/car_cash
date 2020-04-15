@@ -15,6 +15,7 @@ enum PriceSet {
   Quantity,
   PricePerUnit,
   TotalPrice,
+  None
 }
 
 class RefuelingAdapter {
@@ -179,60 +180,79 @@ class RefuelingAdapter {
     }
   }
 
-  set pricePerUnit(double ppu) {
+  PriceSet setPricePerUnit(double ppu) {
     if (ppu == null) {
       _removeLastSet(PriceSet.PricePerUnit);
       nullify(pricePerUnit: true);
+      return PriceSet.None;
     } else {
       set(pricePerUnit: ppu);
       _updateLastSet(PriceSet.PricePerUnit);
-      _recalculateAutoSet();
+      return _recalculateAutoSet();
     }
   }
 
-  set quantity(double quantity) {
+  PriceSet setQuantity(double quantity) {
     if (quantity == null) {
       _removeLastSet(PriceSet.Quantity);
       nullify(quantity: true);
+      return PriceSet.None;
     } else {
       set(quantity: quantity);
       _updateLastSet(PriceSet.Quantity);
-      _recalculateAutoSet();
+      return _recalculateAutoSet();
     }
   }
 
-  set totalPrice(double total) {
+  PriceSet setTotalPrice(double total) {
     _totalPrice = total;
     if (total == null) {
       _removeLastSet(PriceSet.TotalPrice);
-      return;
+      return PriceSet.None;
     }
     _updateLastSet(PriceSet.TotalPrice);
-    _recalculateAutoSet();
+    return _recalculateAutoSet();
   }
 
-  void _recalculateAutoSet() {
+  PriceSet _recalculateAutoSet() {
     if (_autoSet == null) {
-      return;
+      return PriceSet.None;
     }
     switch (_autoSet) {
       case PriceSet.PricePerUnit:
         if (_totalPrice != null && _refueling.quantity != null) {
           set(pricePerUnit: _totalPrice / _refueling.quantity);
-          print('ppu = ${_refueling.pricePerUnit}');
+          return _autoSet;
         }
         break;
       case PriceSet.Quantity:
         if (_totalPrice != null && _refueling.pricePerUnit != null) {
           set(quantity: _totalPrice / _refueling.pricePerUnit);
-          print('q = ${_refueling.quantity}');
+          return _autoSet;
         }
         break;
       case PriceSet.TotalPrice:
         _totalPrice = _refueling.totalPrice;
-        print('tot = $_totalPrice');
+        return _autoSet;
+        break;
+      case PriceSet.None:
         break;
     }
+    return PriceSet.None;
+  }
+
+  double priceSetValue(PriceSet priceSet) {
+    switch(priceSet) {
+      case PriceSet.PricePerUnit:
+        return _refueling.pricePerUnit;
+      case PriceSet.Quantity:
+        return _refueling.quantity;
+      case PriceSet.TotalPrice:
+        return _totalPrice;
+      case PriceSet.None:
+      break;
+    }
+    return null;
   }
 
   double displayedDistance(int distance) =>

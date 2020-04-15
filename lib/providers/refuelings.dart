@@ -169,7 +169,7 @@ class Refuelings extends ChangeNotifier {
 
   Future<void> updateRefueling(Refueling oldRefueling,
       RefuelingAdapter refuelingAdapter, MileageType mileageType) async {
-    DateTime timestamp = oldRefueling.timestamp;
+    DateTime timestamp = oldRefueling?.timestamp;
     Refueling refueling = refuelingAdapter.get();
     if (refueling.timestamp.millisecondsSinceEpoch !=
         timestamp?.millisecondsSinceEpoch) {

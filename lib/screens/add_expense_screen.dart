@@ -1,6 +1,7 @@
 import 'package:car_cash/model/car.dart';
 import 'package:car_cash/providers/cars.dart';
 import 'package:car_cash/utils/data_validator.dart';
+import 'package:car_cash/widgets/number_form.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../l10n/localization.dart';
@@ -33,6 +34,17 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   Refuelings _refuelings;
   DataValidator _validator;
   Cars _cars;
+  NumberForm _pricePerUnitForm;
+  NumberForm _quantityForm;
+  NumberForm _totalPriceForm;
+
+  @override
+  void dispose() {
+    _pricePerUnitForm.dispose();
+    _quantityForm.dispose();
+    _totalPriceForm.dispose();
+    super.dispose();
+  }
 
   void _saveRefueling() {
     if (_validateForm()) {
@@ -109,19 +121,34 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     }
   }
 
-  Widget _numberForm(
+  NumberForm _makeNumberForm(
           {@required double initialValue,
-          @required void Function(String) onSaved,
+          @required PriceSet Function(String) onSaved,
           @required String labelText}) =>
-      TextFormField(
-        initialValue: (initialValue ?? '').toString(),
-        // onSaved: onSaved,
-        onFieldSubmitted: onSaved,
-        validator: _validator.validateNumber,
+      NumberForm(
+        initialValue: initialValue,
+        onSaved: (value) {
+          final toSet = onSaved(value);
+          _priceSetToNumberForm(toSet)
+              ?.changeValue(_refuelingAdapter.priceSetValue(toSet));
+        },
+        validate: _validator.validateNumber,
         onEditingComplete: _validateOnEditingIfNeeded,
-        keyboardType: TextInputType.number,
-        decoration: InputDecoration(labelText: labelText),
+        labelText: labelText,
       );
+
+  NumberForm _priceSetToNumberForm(PriceSet priceSet) {
+    switch (priceSet) {
+      case PriceSet.PricePerUnit:
+        return _pricePerUnitForm;
+      case PriceSet.Quantity:
+        return _quantityForm;
+      case PriceSet.TotalPrice:
+        return _totalPriceForm;
+      default:
+        return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,6 +160,19 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       _refuelingAdapter ??= RefuelingAdapter(context, null);
       _validator ??= DataValidator(context);
       _cars = Provider.of<Cars>(context);
+      _pricePerUnitForm = _makeNumberForm(
+          initialValue: _refuelingAdapter.get().pricePerUnit,
+          onSaved: (value) =>
+              _refuelingAdapter.setPricePerUnit(toDouble(value)),
+          labelText: localization.tr('pricePerUnit'));
+      _quantityForm = _makeNumberForm(
+          initialValue: _refuelingAdapter.get().quantity,
+          onSaved: (value) => _refuelingAdapter.setQuantity(toDouble(value)),
+          labelText: localization.tr('quantity'));
+      _totalPriceForm = _makeNumberForm(
+          initialValue: _refuelingAdapter.get().totalPrice,
+          onSaved: (value) => _refuelingAdapter.setTotalPrice(toDouble(value)),
+          labelText: localization.tr('totalPrice'));
     }
     return Scaffold(
         appBar: AppBar(
@@ -182,11 +222,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       labelText: localization.tr('selectedCar')),
                 ),
                 TwoItemLine(
-                    _numberForm(
-                        initialValue: _refuelingAdapter.get().pricePerUnit,
-                        onSaved: (value) =>
-                            _refuelingAdapter.pricePerUnit = toDouble(value),
-                        labelText: localization.tr('pricePerUnit')),
+                    _pricePerUnitForm,
+                    // _numberForm(
+                    //     initialValue: _refuelingAdapter.get().pricePerUnit,
+                    //     onSaved: (value) =>
+                    //         _refuelingAdapter.pricePerUnit = toDouble(value),
+                    //     labelText: localization.tr('pricePerUnit')),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: <Widget>[
@@ -198,11 +239,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       ],
                     )),
                 TwoItemLine(
-                    _numberForm(
-                        initialValue: _refuelingAdapter.get().quantity,
-                        onSaved: (value) =>
-                            _refuelingAdapter.quantity = toDouble(value),
-                        labelText: localization.tr('quantity')),
+                    _quantityForm,
+                    // _numberForm(
+                    //     initialValue: _refuelingAdapter.get().quantity,
+                    //     onSaved: (value) =>
+                    //         _refuelingAdapter.quantity = toDouble(value),
+                    //     labelText: localization.tr('quantity')),
                     DropdownButtonFormField<int>(
                       items: _refuelingAdapter.fuelUnits
                           .map((f) => DropdownMenuItem(
@@ -216,11 +258,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       value: _refuelingAdapter.fuelUnit.id,
                     )),
                 TwoItemLine(
-                    _numberForm(
-                        initialValue: _refuelingAdapter.get().totalPrice,
-                        onSaved: (value) =>
-                            _refuelingAdapter.totalPrice = toDouble(value),
-                        labelText: localization.tr('totalPrice')),
+                    _totalPriceForm,
+                    // _numberForm(
+                    //     initialValue: _refuelingAdapter.get().totalPrice,
+                    //     onSaved: (value) =>
+                    //         _refuelingAdapter.totalPrice = toDouble(value),
+                    //     labelText: localization.tr('totalPrice')),
                     DropdownButtonFormField<int>(
                       items: _refuelingAdapter.fuelTypes
                           .map((f) => DropdownMenuItem(
