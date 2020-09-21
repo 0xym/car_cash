@@ -4,6 +4,8 @@ import 'package:car_cash/providers/refuelings.dart';
 import 'package:car_cash/screens/add_expense_screen.dart';
 import 'package:flutter/cupertino.dart';
 
+import '../l10n/localization.dart';
+import '../l10n/localization.dart';
 import 'common.dart';
 
 class DataValidator {
@@ -11,19 +13,29 @@ class DataValidator {
 
   DataValidator(this.context);
 
-  String validateNumber(String value) {
+  String _validatePositiveValue(double parsed, Localization loc) =>
+    parsed <= 0.0 ? loc.tr('errorMustBePositive') : null;
+
+  String _validateNonNegativeValue(double parsed, Localization loc) =>
+    parsed < 0.0 ? loc.tr('errorMustBePositive') : null;
+
+  String validateNumber(String value) => _validateNumber(value, _validatePositiveValue);
+  String validateNonNegativeNumber(String value) => _validateNumber(value, _validateNonNegativeValue);
+
+  String _validateNumber(String value, String valueValidator(double v, Localization l)) {
     final loc = Localization.of(context);
     double parsed = toDouble(value);
     return value.isEmpty
         ? loc.tr('errorValueEmpty')
         : parsed == null
             ? loc.tr('errorInvalidNumber')
-            : parsed <= 0.0 ? loc.tr('errorMustBePositive') : null;
+            : valueValidator(parsed, loc);
   }
 
   String validateRefuelingDistance(String value, MileageType mileageType,
       RefuelingAdapter refuelingAdapter, Refuelings refuelings) {
-    final preValidation = validateNumber(value);
+    final thisIsFirstRefueling = refuelings.previousRefuelingIndexOfCar(refuelingAdapter.get()) == -1;
+    final preValidation = thisIsFirstRefueling ? validateNonNegativeNumber(value) : validateNumber(value);
     if (mileageType == MileageType.Trip || preValidation != null) {
       return preValidation;
     }
