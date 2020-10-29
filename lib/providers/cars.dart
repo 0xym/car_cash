@@ -22,6 +22,8 @@ class Cars extends ChangeNotifier {
 
   Map<int, Car> _items;
 
+  Iterable<Car> get cars => _items.values;
+
   Car get(int id) => _items.containsKey(id) ? _items[id] : null;
 
   Iterable<int> get keys {
