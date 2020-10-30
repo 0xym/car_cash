@@ -201,17 +201,21 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   items: _cars.keys
                       .map(
                         (id) => DropdownMenuItem(
-                          value: id,
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: _cars.get(id).color,
-                            ),
-                            title: Text(_cars.get(id).name),
-                            subtitle: _cars.get(id).brandAndModel == null
-                                ? null
-                                : Text(_cars.get(id).brandAndModel),
-                          ),
-                        ),
+                            value: id,
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                    backgroundColor: _cars.get(id).color),
+                                SizedBox(width: 5,),
+                                Text(_cars.get(id).name),
+                                SizedBox(width: 10,),
+                                if (_cars.get(id).brandAndModel != null)
+                                  Text(
+                                    _cars.get(id).brandAndModel,
+                                    style: TextStyle(color: Colors.grey),
+                                  )
+                              ],
+                            )),
                       )
                       .toList(),
                   value: _prefs.get(DEFAULT_CAR),
