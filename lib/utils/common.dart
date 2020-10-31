@@ -2,6 +2,18 @@ double toDouble(String value) {
   return double.tryParse(value.replaceAll(',', '.'));
 }
 
+String valueToText(double value, int precision) {
+  if (value == null)
+    return '';
+  return value.toStringAsFixed(precision);
+}
+
+String withoutTrailingZeros(String text){
+    while (text.endsWith('0')) text = text.substring(0, text.length - 1);
+    if (text.endsWith('.'))  text = text.substring(0, text.length - 1);
+    return text;
+}
+
 DateTime today() {
   final now = DateTime.now();
   return DateTime(now.year, now.month, now.day, 23, 59, 59, 999);

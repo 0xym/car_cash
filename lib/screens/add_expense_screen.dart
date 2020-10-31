@@ -124,7 +124,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   NumberForm _makeNumberForm(
           {@required double initialValue,
           @required PriceSet Function(String) onSaved,
-          @required String labelText}) =>
+          @required String labelText,
+          bool keepTrailingZeros = true,
+          int precision = 2}) =>
       NumberForm(
         initialValue: initialValue,
         onSaved: (value) {
@@ -135,6 +137,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         validate: _validator.validateNumber,
         onEditingComplete: _validateOnEditingIfNeeded,
         labelText: labelText,
+        valueToText: (value)  {
+          final text = valueToText(value, precision);
+          if (keepTrailingZeros) 
+            return text;
+          return withoutTrailingZeros(text);
+        },
       );
 
   NumberForm _priceSetToNumberForm(PriceSet priceSet) {
