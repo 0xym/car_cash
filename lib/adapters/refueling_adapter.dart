@@ -1,3 +1,4 @@
+import 'package:car_cash/providers/refuelings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -11,12 +12,9 @@ import '../model/fuel_unit.dart';
 import '../model/preferences.dart';
 import '../model/refueling.dart';
 
-enum PriceSet {
-  Quantity,
-  PricePerUnit,
-  TotalPrice,
-  None
-}
+enum PriceSet { Quantity, PricePerUnit, TotalPrice, None }
+
+enum MileageType { Trip, Total }
 
 class RefuelingAdapter {
   // final _prefs = Preferences();
@@ -242,7 +240,7 @@ class RefuelingAdapter {
   }
 
   double priceSetValue(PriceSet priceSet) {
-    switch(priceSet) {
+    switch (priceSet) {
       case PriceSet.PricePerUnit:
         return _refueling.pricePerUnit;
       case PriceSet.Quantity:
@@ -250,9 +248,35 @@ class RefuelingAdapter {
       case PriceSet.TotalPrice:
         return _totalPrice;
       case PriceSet.None:
-      break;
+        break;
     }
     return null;
+  }
+
+//TODO - continue moving here (better use member functions)
+  void updateTimestamp(DateTime timestamp, Refuelings refuelings,
+      MileageType mileageType, int oldRefuelingTripMileage) {
+    if (timestamp.isAtSameMomentAs(get().timestamp)) {
+      return;
+    }
+    //TODO handling should be related to trip distance text input controller
+    final oldPrev = refuelings.previousRefuelingIndexOfCar(get());
+    set(timestamp: timestamp);
+    // return;
+    final prev = refuelings.previousRefuelingIndexOfCar(get());
+    if (mileageType == MileageType.Total) {
+      set(
+          tripMileage: get().totalMileage -
+              (refuelings.itemAtIndex(prev)?.totalMileage ??
+                  car.initialMileage));
+    } else {
+      final toFuture =
+          refuelings.isMovedToFuture(prevIdx: oldPrev, nextIdx: prev);
+      get().totalMileage =
+          (refuelings.itemAtIndex(prev)?.totalMileage ?? car.initialMileage) +
+              get().tripMileage -
+              (toFuture ? oldRefuelingTripMileage ?? 0 : 0);
+    }
   }
 
   double displayedDistance(int distance) =>

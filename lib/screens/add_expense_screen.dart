@@ -21,8 +21,6 @@ class AddExpenseScreen extends StatefulWidget {
   _AddExpenseScreenState createState() => _AddExpenseScreenState();
 }
 
-enum MileageType { Trip, Total }
-
 class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _formKey = GlobalKey<FormState>();
   final _prefs = Preferences();
@@ -94,33 +92,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             ));
   }
 
-  void _updateTimestamp(DateTime timestamp) {
-    if (timestamp.isAtSameMomentAs(_refuelingAdapter.get().timestamp)) {
-      return;
-    }
-    //TODO handling should be related to trip distance text input controller
-    final oldPrev =
-        _refuelings.previousRefuelingIndexOfCar(_refuelingAdapter.get());
-    _refuelingAdapter.set(timestamp: timestamp);
-    // return;
-    final prev =
-        _refuelings.previousRefuelingIndexOfCar(_refuelingAdapter.get());
-    if (_mileageType == MileageType.Total) {
-      _refuelingAdapter.set(
-          tripMileage: _refuelingAdapter.get().totalMileage -
-              (_refuelings.itemAtIndex(prev)?.totalMileage ??
-                  _refuelingAdapter.car.initialMileage));
-    } else {
-      final toFuture =
-          _refuelings.isMovedToFuture(prevIdx: oldPrev, nextIdx: prev);
-      _refuelingAdapter.get().totalMileage =
-          (_refuelings.itemAtIndex(prev)?.totalMileage ??
-                  _refuelingAdapter.car.initialMileage) +
-              _refuelingAdapter.get().tripMileage -
-              (toFuture ? _oldRefueling?.tripMileage ?? 0 : 0);
-    }
-  }
-
   NumberForm _makeNumberForm(
           {@required double initialValue,
           @required PriceSet Function(String) onSaved,
@@ -137,10 +108,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         validate: _validator.validateNumber,
         onEditingComplete: _validateOnEditingIfNeeded,
         labelText: labelText,
-        valueToText: (value)  {
+        valueToText: (value) {
           final text = valueToText(value, precision);
-          if (keepTrailingZeros) 
-            return text;
+          if (keepTrailingZeros) return text;
           return withoutTrailingZeros(text);
         },
       );
@@ -214,9 +184,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                               children: [
                                 CircleAvatar(
                                     backgroundColor: _cars.get(id).color),
-                                SizedBox(width: 5,),
+                                SizedBox(width: 5),
                                 Text(_cars.get(id).name),
-                                SizedBox(width: 10,),
+                                SizedBox(width: 10),
                                 if (_cars.get(id).brandAndModel != null)
                                   Text(
                                     _cars.get(id).brandAndModel,
@@ -235,11 +205,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 ),
                 TwoItemLine(
                     _pricePerUnitForm,
-                    // _numberForm(
-                    //     initialValue: _refuelingAdapter.get().pricePerUnit,
-                    //     onSaved: (value) =>
-                    //         _refuelingAdapter.pricePerUnit = toDouble(value),
-                    //     labelText: localization.tr('pricePerUnit')),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: <Widget>[
@@ -252,11 +217,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                     )),
                 TwoItemLine(
                     _quantityForm,
-                    // _numberForm(
-                    //     initialValue: _refuelingAdapter.get().quantity,
-                    //     onSaved: (value) =>
-                    //         _refuelingAdapter.quantity = toDouble(value),
-                    //     labelText: localization.tr('quantity')),
                     DropdownButtonFormField<int>(
                       items: _refuelingAdapter.fuelUnits
                           .map((f) => DropdownMenuItem(
@@ -271,11 +231,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                     )),
                 TwoItemLine(
                     _totalPriceForm,
-                    // _numberForm(
-                    //     initialValue: _refuelingAdapter.get().totalPrice,
-                    //     onSaved: (value) =>
-                    //         _refuelingAdapter.totalPrice = toDouble(value),
-                    //     labelText: localization.tr('totalPrice')),
                     DropdownButtonFormField<int>(
                       items: _refuelingAdapter.fuelTypes
                           .map((f) => DropdownMenuItem(
@@ -327,8 +282,21 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       decoration: InputDecoration(
                           labelText: localization.tr('distanceMeasurement')),
                     )),
-                TwoItemLine(RefuelingDate(_refuelingAdapter, _updateTimestamp),
-                    RefuelingTime(_refuelingAdapter, _updateTimestamp)),
+                TwoItemLine(
+                    RefuelingDate(
+                        _refuelingAdapter,
+                        (timestamp) => _refuelingAdapter.updateTimestamp(
+                            timestamp,
+                            _refuelings,
+                            _mileageType,
+                            _oldRefueling?.tripMileage)),
+                    RefuelingTime(
+                        _refuelingAdapter,
+                        (timestamp) => _refuelingAdapter.updateTimestamp(
+                            timestamp,
+                            _refuelings,
+                            _mileageType,
+                            _oldRefueling?.tripMileage))),
               ]),
             )));
   }
