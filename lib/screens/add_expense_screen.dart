@@ -1,6 +1,7 @@
 import 'package:car_cash/model/car.dart';
 import 'package:car_cash/providers/cars.dart';
 import 'package:car_cash/utils/data_validator.dart';
+import 'package:car_cash/utils/focus_handler.dart';
 import 'package:car_cash/widgets/number_form.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -35,6 +36,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   NumberForm _pricePerUnitForm;
   NumberForm _quantityForm;
   NumberForm _totalPriceForm;
+  FocusNode _distanceFocusNode;
+  FocusHandler _focusHandler;
+  var _savingScheduled = false;
 
   @override
   void dispose() {
@@ -42,6 +46,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     _quantityForm.dispose();
     _totalPriceForm.dispose();
     super.dispose();
+  }
+
+  void _scheduleSave() {
+    _focusHandler.defocusAll();
+    setState(() => _savingScheduled = true);
   }
 
   void _saveRefueling() {
@@ -105,6 +114,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           _priceSetToNumberForm(toSet)
               ?.changeValue(_refuelingAdapter.priceSetValue(toSet));
         },
+        focusHandler: _focusHandler,
         validate: _validator.validateNumber,
         onEditingComplete: _validateOnEditingIfNeeded,
         labelText: labelText,
@@ -128,10 +138,19 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     }
   }
 
+  double _distanceInRefueling() => _mileageType == MileageType.Trip
+                                  ? _refuelingAdapter.displayedTripMileage
+                                  : _refuelingAdapter.displayedTotalMileage;
+
   @override
   Widget build(BuildContext context) {
+    if (_savingScheduled) {
+      _savingScheduled = false;
+      Future.delayed(Duration(), () => _saveRefueling());
+    }
     final localization = Localization.of(context);
     if (_refuelingAdapter == null) {
+      _focusHandler = FocusHandler(_saveRefueling);
       _refuelings = Provider.of<Refuelings>(context, listen: false);
       _refuelingAdapter = ModalRoute.of(context).settings.arguments;
       _oldRefueling = _refuelingAdapter?.get();
@@ -143,14 +162,19 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           onSaved: (value) =>
               _refuelingAdapter.setPricePerUnit(toDouble(value)),
           labelText: localization.tr('pricePerUnit'));
+      _focusHandler.make(_pricePerUnitForm.focusNode, () => _refuelingAdapter.get().pricePerUnit != null);
       _quantityForm = _makeNumberForm(
           initialValue: _refuelingAdapter.get().quantity,
           onSaved: (value) => _refuelingAdapter.setQuantity(toDouble(value)),
           labelText: localization.tr('quantity'));
+      _focusHandler.make(_quantityForm.focusNode, () => _refuelingAdapter.get().quantity != null);
       _totalPriceForm = _makeNumberForm(
           initialValue: _refuelingAdapter.get().totalPrice,
           onSaved: (value) => _refuelingAdapter.setTotalPrice(toDouble(value)),
           labelText: localization.tr('totalPrice'));
+      _focusHandler.make(_totalPriceForm.focusNode, () => _refuelingAdapter.get().totalPrice != null);
+      _distanceFocusNode = FocusNode();
+      _focusHandler.make(_distanceFocusNode, () => _distanceInRefueling() != null);
     }
     return Scaffold(
         appBar: AppBar(
@@ -163,7 +187,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               ),
             IconButton(
               icon: Icon(Icons.check),
-              onPressed: _saveRefueling,
+              onPressed: _scheduleSave,
             )
           ],
         ),
@@ -246,11 +270,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                     )),
                 TwoItemLine(
                     TextFormField(
-                      initialValue: (_mileageType == MileageType.Trip
-                                  ? _refuelingAdapter.displayedTripMileage
-                                  : _refuelingAdapter.displayedTotalMileage)
-                              ?.toString() ??
-                          '',
+                      initialValue: _distanceInRefueling()?.toString() ?? '',
                       onSaved: (value) => _refuelings.saveRefuelingDistance(
                           toDouble(value),
                           _mileageType,
@@ -260,6 +280,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       validator: (value) =>
                           _validator.validateRefuelingDistance(value,
                               _mileageType, _refuelingAdapter, _refuelings),
+                      focusNode: _distanceFocusNode,
+                      textInputAction: _focusHandler.nodeAction(_distanceFocusNode),
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
                           labelText:
