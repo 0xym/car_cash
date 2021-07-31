@@ -1,6 +1,5 @@
 import 'package:car_cash/adapters/refueling_adapter.dart';
 import 'package:car_cash/adapters/total_mileage_counter.dart';
-import 'package:car_cash/screens/add_expense_screen.dart';
 import 'package:flutter/material.dart';
 import '../model/refueling.dart';
 import '../utils/db_access.dart';

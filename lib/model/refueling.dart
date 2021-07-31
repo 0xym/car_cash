@@ -9,6 +9,11 @@ class Refueling {
   static const TIMESTAMP = 'timestamp';
   static const FUEL_TYPE_ID = 'fuelTypeId';
   static const EXCHANGE_RATE = 'exchangeRate';
+  static const CURRENCY = 'currency';
+  static const DISCOUNT = 'discount';
+  static const DISCOUNT_TYPE = 'discount_type';
+  //shouldn't costType be moved to the expenditure?
+  static const COST_TYPE = 'cost_type'; //timeDependent or distanceDependeent
   static const NOTE = 'note';
   static const CAR_ID = 'carId';
 
