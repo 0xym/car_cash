@@ -15,8 +15,10 @@ class Localization {
   final _language;
   final Map<String, String> _currentTranslations;
 
-  Localization(String language) : _language = language,  
-                                _currentTranslations = _getLanguage.containsKey(language) ? _getLanguage[language]().translations : LocalizationEn().translations;
+  Localization(String language)
+      : _language = language,
+        _currentTranslations =
+            (_getLanguage[language]?.call() ?? LocalizationEn()).translations;
 
   static Localization of(BuildContext context) {
     final language = Localizations.localeOf(context).languageCode;
@@ -30,7 +32,10 @@ class Localization {
     return _getLanguage.containsKey(locale.languageCode);
   }
 
-  String tr(String id) => _currentTranslations.containsKey(id) ? _currentTranslations[id] : _baseTranslations.containsKey(id) ? _baseTranslations[id] : 'Invalid string resource: \"$id\"';
-  String ttr(String id) => _currentTranslations.containsKey(id) ? _currentTranslations[id] : _baseTranslations.containsKey(id) ? _baseTranslations[id] : id;
-  
+  String tr(String id) =>
+      _currentTranslations[id] ??
+      _baseTranslations[id] ??
+      'Invalid string resource: \"$id\"';
+  String ttr(String? id) =>
+      _currentTranslations[id] ?? _baseTranslations[id] ?? id ?? 'null';
 }

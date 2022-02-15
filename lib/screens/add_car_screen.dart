@@ -21,8 +21,8 @@ enum ScrollRequestState { Init, Drawing, Done }
 
 class _AddCarScreenState extends State<AddCarScreen> {
   final _formKey = GlobalKey<FormState>();
-  ScrollController _scrollController;
-  Car _car;
+  ScrollController? _scrollController;
+  Car? _car;
   ScrollRequestState _scrollDownRequested = ScrollRequestState.Done;
   static final availableColors = [
     Colors.blue,
@@ -47,41 +47,41 @@ class _AddCarScreenState extends State<AddCarScreen> {
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _scrollController?.dispose();
     super.dispose();
   }
 
   void _scrollDown() {
-    _scrollController.animateTo(_scrollController.position.maxScrollExtent,
+    _scrollController?.animateTo(_scrollController!.position.maxScrollExtent,
         duration: Duration(milliseconds: 300), curve: Curves.easeIn);
   }
 
   void _fuelTypeChanged(int index, int fuelType, int fuelUnit) {
-    if ((_car.fuelTypes[index].type != fuelType) ||
-        (_car.fuelTypes[index].unit != fuelUnit)) {
-      final fuelTypes = _car.fuelTypes;
+    if ((_car?.fuelTypes[index].type != fuelType) ||
+        (_car?.fuelTypes[index].unit != fuelUnit)) {
+      final fuelTypes = _car!.fuelTypes;
       fuelTypes[index] = FuelTypeAndUnit(fuelType, fuelUnit);
-      setState(() => _car = _car.copyWith(fuelTypes: fuelTypes));
+      setState(() => _car = _car!.copyWith(fuelTypes: fuelTypes));
     }
   }
 
   void _deleteFuelType(int index) {
     setState(() {
-      _car = _car.copyWith(fuelTypes: _car.fuelTypes..removeAt(index));
+      _car = _car!.copyWith(fuelTypes: _car!.fuelTypes..removeAt(index));
     });
   }
 
   void _saveForm() {
-    if (_formKey.currentState.validate()) {
-      _formKey.currentState.save();
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
       final cars = Provider.of<Cars>(context);
-      final oldMileage = cars.get(_car.id)?.initialMileage;
+      final oldMileage = cars.get(_car!.id)?.initialMileage;
       final requestUpdate =
-          (oldMileage != null) && (oldMileage != _car.initialMileage);
-      cars.addCar(_car..sanitize());
+          (oldMileage != null) && (oldMileage != _car!.initialMileage);
+      cars.addCar(_car!..sanitize());
       if (requestUpdate) {
         Provider.of<Refuelings>(context)
-            .recalculateTotalMileage(_car.id, _car.initialMileage);
+            .recalculateTotalMileage(_car!.id!, _car!.initialMileage!);
       }
       if (widget._asMainScreen) {
         Navigator.of(context).pushReplacementNamed('/');
@@ -105,7 +105,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
                 FlatButton(
                   child: Text(loc.tr('deleteAction')),
                   onPressed: () {
-                    Provider.of<Cars>(context).delete(_car.id);
+                    Provider.of<Cars>(context).delete(_car!.id!);
                     Navigator.of(context).pop();
                     Navigator.of(context).pop();
                   },
@@ -118,7 +118,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
   Widget build(BuildContext context) {
     final loc = Localization.of(context);
     if (_car == null) {
-      _car = ModalRoute.of(context).settings.arguments ?? Car();
+      _car = ModalRoute.of(context)?.settings.arguments as Car? ?? Car();
     }
     if (_scrollDownRequested == ScrollRequestState.Init) {
       Future.delayed(
@@ -133,7 +133,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
       appBar: AppBar(
         title: Text(loc.tr('addCarTitle')),
         actions: <Widget>[
-          if (_car.id != null)
+          if (_car!.id != null)
             IconButton(
               icon: Icon(Icons.delete),
               onPressed: _deleteRequest,
@@ -167,35 +167,35 @@ class _AddCarScreenState extends State<AddCarScreen> {
                           ),
                         ))
                     .toList(),
-                value: _car.color?.value,
+                value: _car!.color?.value,
                 validator: (value) =>
                     value == null ? loc.tr('errorValueEmpty') : null,
                 onChanged: (value) =>
-                    setState(() => _car = _car.copyWith(color: Color(value))),
+                    setState(() => _car = _car!.copyWith(color: Color(value!))),
                 decoration: InputDecoration(labelText: loc.tr('color')),
               ),
               TextFormField(
-                initialValue: _car.brand ?? '',
-                onSaved: (value) => _car = _car.copyWith(brand: value),
+                initialValue: _car!.brand ?? '',
+                onSaved: (value) => _car = _car!.copyWith(brand: value),
                 keyboardType: TextInputType.text,
                 decoration: InputDecoration(
                     labelText:
                         '${loc.tr("carBrand")}${loc.tr("optionalMark")}'),
               ),
               TextFormField(
-                initialValue: _car.model ?? '',
+                initialValue: _car!.model ?? '',
                 keyboardType: TextInputType.text,
-                onSaved: (value) => _car = _car.copyWith(model: value),
+                onSaved: (value) => _car = _car!.copyWith(model: value),
                 decoration: InputDecoration(
                     labelText:
                         '${loc.tr("carModel")}${loc.tr("optionalMark")}'),
               ),
               TextFormField(
-                initialValue: _car.name ?? '',
+                initialValue: _car!.name ?? '',
                 keyboardType: TextInputType.text,
                 validator: (value) =>
-                    value.isEmpty ? loc.tr('errorValueEmpty') : null,
-                onSaved: (value) => _car = _car.copyWith(name: value),
+                    value!.isEmpty ? loc.tr('errorValueEmpty') : null,
+                onSaved: (value) => _car = _car!.copyWith(name: value),
                 decoration: InputDecoration(labelText: loc.tr('carName')),
               ),
               DropdownButtonFormField<Distance>(
@@ -209,50 +209,52 @@ class _AddCarScreenState extends State<AddCarScreen> {
                     child: Text(loc.tr('unitMile')),
                   ),
                 ],
-                value: _car.distanceUnit,
+                value: _car!.distanceUnit,
                 validator: (value) =>
                     value == null ? loc.tr('errorValueEmpty') : null,
                 onChanged: (value) =>
-                    setState(() => _car = _car.copyWith(distanceUnit: value)),
+                    setState(() => _car = _car!.copyWith(distanceUnit: value)),
                 decoration: InputDecoration(labelText: loc.tr('distanceUnit')),
               ),
               TextFormField(
-                initialValue: _car.distanceUnit
-                        ?.toUnit(_car.initialMileage?.toDouble())
+                initialValue: _car!.distanceUnit
+                        ?.toUnit(_car!.initialMileage?.toDouble())
                         ?.toString() ??
                     '',
                 keyboardType: TextInputType.number,
-                onSaved: (value) => _car = _car.copyWith(
-                    initialMileage:
-                        _car.distanceUnit?.toSi(toDouble(value))?.round() ?? 0),
-                validator: (value) => value.isEmpty
+                onSaved: (value) => _car = _car!.copyWith(
+                    initialMileage: _car!.distanceUnit
+                            ?.toSi(toDouble(value ?? '0.0'))
+                            ?.round() ??
+                        0),
+                validator: (value) => value?.isEmpty ?? true
                     ? null
-                    : toDouble(value) == null
+                    : toDouble(value!) == null
                         ? loc.tr('errorInvalidNumber')
-                        : toDouble(value) <= 0.0
+                        : (toDouble(value) ?? 0.0) <= 0.0
                             ? loc.tr('errorMustBePositive')
                             : null,
                 decoration:
                     InputDecoration(labelText: loc.tr('initialMileage')),
               ),
               ...List<Widget>.generate(
-                  _car.fuelTypes.length,
+                  _car!.fuelTypes.length,
                   (idx) => FuelTypeSelectionWidget(
                         fuelIndex: idx,
-                        selectedType: _car.fuelTypes[idx].type,
-                        selectedUnit: _car.fuelTypes[idx].unit,
+                        selectedType: _car!.fuelTypes[idx].type,
+                        selectedUnit: _car!.fuelTypes[idx].unit,
                         onChange: _fuelTypeChanged,
                         onDeleted:
-                            _car.fuelTypes.length > 1 ? _deleteFuelType : null,
+                            _car!.fuelTypes.length > 1 ? _deleteFuelType : null,
                       )),
-              if (_car.fuelTypes.length < Car.MAX_FUEL_TYPES)
+              if (_car!.fuelTypes.length < Car.MAX_FUEL_TYPES)
                 IconButton(
                   icon: Icon(Icons.add_circle),
                   color: Theme.of(context).primaryColor,
                   tooltip: loc.tr('addFuelType'),
                   onPressed: () {
-                    setState(() => _car = _car.copyWith(
-                        fuelTypes: _car.fuelTypes
+                    setState(() => _car = _car!.copyWith(
+                        fuelTypes: _car!.fuelTypes
                           ..add(FuelTypeAndUnit(null, null))));
                     _scrollDownRequested = ScrollRequestState.Init;
                   },

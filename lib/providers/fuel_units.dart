@@ -14,14 +14,14 @@ class FuelUnits extends ChangeNotifier {
 
   };
 
-  FuelUnit get(int id) => _items.containsKey(id) ? _items[id] : null;
+  FuelUnit? get(int? id) => _items.containsKey(id) ? _items[id] : null;
 
 Iterable<int> get keys {
     return _items.keys;
   }
 
 Iterable<int> keysWhere(UnitType type) {
-  return _items.keys.where((i) => _items[i].unitType == type);
+  return _items.keys.where((i) => _items[i]!.unitType == type);
 }
 
 Iterable<FuelUnit> where(UnitType type) {
@@ -29,7 +29,7 @@ Iterable<FuelUnit> where(UnitType type) {
 }
 
 int firstWhere(UnitType type) {
-  return _items.keys.firstWhere((i) => _items[i].unitType == type);
+  return _items.keys.firstWhere((i) => _items[i]!.unitType == type);
 }
 
 

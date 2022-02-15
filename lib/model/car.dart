@@ -9,8 +9,8 @@ class FuelTypeAndUnit {
   static const TYPE = 'type';
   static const UNIT = 'unit';
 
-  final int type;
-  final int unit;
+  final int? type;
+  final int? unit;
   FuelTypeAndUnit(this.type, this.unit);
 
   FuelTypeAndUnit withType(int type) => FuelTypeAndUnit(type, this.unit);
@@ -31,14 +31,14 @@ class Car {
   static const COLOR = 'color';
   static const MAX_FUEL_TYPES = 3;
 
-  final int id;
-  final String brand;
-  final String model;
-  final String name;
-  final Distance distanceUnit;
-  final int initialMileage;
+  final int? id;
+  final String? brand;
+  final String? model;
+  final String? name;
+  final Distance? distanceUnit;
+  final int? initialMileage;
   final List<FuelTypeAndUnit> _fuelTypes;
-  final Color color;
+  final Color? color;
 
   static String get dbLayout {
     return '($ID $PRIMARY_KEY, $BRAND $TEXT, $MODEL $TEXT, $NAME $TEXT, $DISTANCE_UNIT $TEXT, $INITIAL_MILEAGE $INT, $COLOR $INT, ' +
@@ -49,14 +49,14 @@ class Car {
   }
 
   Car.copy(Car other,
-      {int id,
-      String brand,
-      String model,
-      String name,
-      Distance distanceUnit,
-      int initialMileage,
-      Color color,
-      List<FuelTypeAndUnit> fuelTypes})
+      {int? id,
+      String? brand,
+      String? model,
+      String? name,
+      Distance? distanceUnit,
+      int? initialMileage,
+      Color? color,
+      List<FuelTypeAndUnit>? fuelTypes})
       : this.id = id ?? other.id,
         this.brand = brand ?? other.brand,
         this.model = model ?? other.model,
@@ -67,30 +67,30 @@ class Car {
         this._fuelTypes = fuelTypes ?? other.fuelTypes;
 
   Car copyWith(
-          {int id,
-          String brand,
-          String model,
-          String name,
-          Distance distanceUnit,
-          int initialMileage,
-          Color color,
-          List<FuelTypeAndUnit> fuelTypes}) =>
+          {int? id,
+          String? brand,
+          String? model,
+          String? name,
+          Distance? distanceUnit,
+          int? initialMileage,
+          Color? color,
+          List<FuelTypeAndUnit>? fuelTypes}) =>
       Car.copy(this, id: id, brand: brand, model: model, name: name, distanceUnit: distanceUnit, initialMileage: initialMileage, fuelTypes: fuelTypes, color: color);
 
-  Map<String, Object> serialize() => {
+  Map<String, Object?> serialize() => {
         ID: id,
         BRAND: brand,
         MODEL: model,
         NAME: name,
         DISTANCE_UNIT: distanceUnit.toString(),
         INITIAL_MILEAGE: initialMileage,
-        COLOR: color.value,
+        COLOR: color?.value,
       }
-        ..addAll(Map<String, Object>.fromIterable(
+        ..addAll(Map<String, Object?>.fromIterable(
             List<int>.generate(MAX_FUEL_TYPES, (i) => i),
             key: (i) => '$FUEL_TYPE$i',
             value: (i) => _fuelTypes.length > i ? _fuelTypes[i].type : null))
-        ..addAll(Map<String, Object>.fromIterable(
+        ..addAll(Map<String, Object?>.fromIterable(
             List<int>.generate(MAX_FUEL_TYPES, (i) => i),
             key: (i) => '$FUEL_UNIT$i',
             value: (i) => _fuelTypes.length > i ? _fuelTypes[i].unit : null));
@@ -128,7 +128,7 @@ class Car {
 
   List<FuelTypeAndUnit> get fuelTypes => _fuelTypes.toList();
 
-  String get brandAndModel {
+  String? get brandAndModel {
     return brand == null ? model : model == null ? brand : '$brand $model';
   }
 }

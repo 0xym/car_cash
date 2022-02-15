@@ -2,19 +2,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import './shared_prefs.dart';
 
 abstract class Access<T> {
-  T get(SharedPreferences prefs, String name);
+  T? get(SharedPreferences prefs, String name);
   set(SharedPreferences prefs, String name, T value);
 }
 
 class StringAccess implements Access<String> {
   const StringAccess();
-  String get(SharedPreferences _prefs, String name) => _prefs.getString(name);
+  String? get(SharedPreferences _prefs, String name) => _prefs.getString(name);
   set(SharedPreferences _prefs, String name, String value) async => await _prefs.setString(name, value);
 }
 
 class IntAccess implements Access<int> {
   const IntAccess();
-  int get(SharedPreferences _prefs, String name) => _prefs.getInt(name);
+  int? get(SharedPreferences _prefs, String name) => _prefs.getInt(name);
   set(SharedPreferences _prefs, String name, int value) async => await _prefs.setInt(name, value);
 }
 

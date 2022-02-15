@@ -1,4 +1,4 @@
-import 'package:car_cash/utils/focus_handler.dart';
+import 'package:carsh/utils/focus_handler.dart';
 import 'package:flutter/material.dart';
 
 const DEFAULT_PRECISION = 2;
@@ -7,22 +7,21 @@ class NumberForm extends StatelessWidget {
   final void Function(String) onSaved;
   final void Function() onEditingComplete;
   final String Function(double) valueToText;
-  final String Function(String) validate;
+  final String? Function(String?) validate;
   final String labelText;
   final TextEditingController _controller;
   final focusNode = FocusNode();
   final FocusHandler focusHandler;
 
   NumberForm(
-      {@required double initialValue,
-      @required this.valueToText,
-      @required this.onSaved,
-      @required this.onEditingComplete,
-      @required this.validate,
-      @required this.labelText,
-      @required this.focusHandler})
-      : _controller =
-            TextEditingController(text: valueToText(initialValue)) {
+      {required double initialValue,
+      required this.valueToText,
+      required this.onSaved,
+      required this.onEditingComplete,
+      required this.validate,
+      required this.labelText,
+      required this.focusHandler})
+      : _controller = TextEditingController(text: valueToText(initialValue)) {
     focusNode.addListener(() {
       if (!focusNode.hasFocus) {
         onSaved(_controller.text);
@@ -45,18 +44,17 @@ class NumberForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      controller: _controller,
-      focusNode: focusNode,
-      onFieldSubmitted: (v) {
-        final action = focusHandler.nodeAction(focusNode);
-        onSaved(v);
-        focusHandler.afterSave(action);
-      },
-      validator: validate,
-      onEditingComplete: onEditingComplete,
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(labelText: labelText),
-      textInputAction: focusHandler.nodeAction(focusNode)
-    );
+        controller: _controller,
+        focusNode: focusNode,
+        onFieldSubmitted: (v) {
+          final action = focusHandler.nodeAction(focusNode);
+          onSaved(v);
+          focusHandler.afterSave(action);
+        },
+        validator: validate,
+        onEditingComplete: onEditingComplete,
+        keyboardType: TextInputType.number,
+        decoration: InputDecoration(labelText: labelText),
+        textInputAction: focusHandler.nodeAction(focusNode));
   }
 }

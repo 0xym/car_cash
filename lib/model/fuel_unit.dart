@@ -1,7 +1,7 @@
 enum UnitType { Energy, Mass, Volume 
 }
 
-UnitType unitTypeFromString(String unitType) {
+UnitType? unitTypeFromString(String unitType) {
   for (UnitType element in UnitType.values) {
     if (element.toString() == unitType) {
       return element;

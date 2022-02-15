@@ -1,4 +1,4 @@
-import 'package:car_cash/model/car.dart';
+import 'package:carsh/model/car.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../l10n/localization.dart';
@@ -50,8 +50,7 @@ class CarListView extends StatefulWidget {
 }
 
 class _CarListViewState extends State<CarListView> {
-
-_CarListViewState(int defaultCar) : defaultCar = defaultCar;
+  _CarListViewState(int defaultCar) : defaultCar = defaultCar;
   int defaultCar;
 
   void setDefaultCar(int id) {
@@ -62,7 +61,7 @@ _CarListViewState(int defaultCar) : defaultCar = defaultCar;
   @override
   Widget build(BuildContext context) {
     return ListView(
-      children: widget._cars.cars
+      children: widget._cars.cars!
           .map((e) => CarItem(e, defaultCar, setDefaultCar))
           .toList(),
     );

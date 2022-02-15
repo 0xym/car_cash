@@ -17,20 +17,20 @@ class Refueling {
   static const NOTE = 'note';
   static const CAR_ID = 'carId';
 
-  final double pricePerUnit;
-  final double quantity; //in SI unit of a given UnitType
-  final int tripMileage; //in meters
-  int totalMileage;
-  final DateTime timestamp;
-  final int fuelTypeId;
-  final int fuelUnitId;
-  final double exchangeRate;
-  final String note;
-  final int carId;
+  final double? pricePerUnit;
+  final double? quantity; //in SI unit of a given UnitType
+  final int? tripMileage; //in meters
+  int? totalMileage;
+  final DateTime? timestamp;
+  final int? fuelTypeId;
+  final int? fuelUnitId;
+  final double? exchangeRate;
+  final String? note;
+  final int? carId;
 
-  double get totalPrice => (pricePerUnit == null || quantity == null)
+  double? get totalPrice => (pricePerUnit == null || quantity == null)
       ? null
-      : quantity * pricePerUnit;
+      : quantity! * pricePerUnit!;
 
   static String get dbLayout {
     return '($TIMESTAMP $INT $PRIMARY_KEY, $CAR_ID $INT, $EXCHANGE_RATE $REAL, $FUEL_TYPE_ID $INT, $MILEAGE $INT, $NOTE $TEXT, $PRICE_PER_UNIT $REAL, $QUANTITY REAL, $FUEL_UNIT_ID INT)';
@@ -49,15 +49,15 @@ class Refueling {
       this.fuelUnitId});
 
   Refueling.copy(Refueling other,
-      {int carId,
-      double exchangeRate,
-      int fuelTypeId,
-      int fuelUnitId,
-      int tripMileage,
-      String note,
-      double pricePerUnit,
-      double quantity,
-      DateTime timestamp})
+      {int? carId,
+      double? exchangeRate,
+      int? fuelTypeId,
+      int? fuelUnitId,
+      int? tripMileage,
+      String? note,
+      double? pricePerUnit,
+      double? quantity,
+      DateTime? timestamp})
       : this.carId = carId ?? other.carId,
         this.exchangeRate = exchangeRate ?? other.exchangeRate,
         this.fuelTypeId = fuelTypeId ?? other.fuelTypeId,
@@ -70,15 +70,15 @@ class Refueling {
         this.totalMileage = other.totalMileage;
 
   Refueling.nullify(Refueling other,
-      {bool carId,
-      bool exchangeRate,
-      bool fuelTypeId,
-      bool fuelUnitId,
-      bool tripMileage,
-      bool note,
-      bool pricePerUnit,
-      bool quantity,
-      bool timestamp})
+      {bool? carId,
+      bool? exchangeRate,
+      bool? fuelTypeId,
+      bool? fuelUnitId,
+      bool? tripMileage,
+      bool? note,
+      bool? pricePerUnit,
+      bool? quantity,
+      bool? timestamp})
       : this.carId = carId == true ? null : other.carId,
         this.exchangeRate = exchangeRate == true ? null : other.exchangeRate,
         this.fuelTypeId = fuelTypeId == true ? null : other.fuelTypeId,
@@ -91,15 +91,15 @@ class Refueling {
         this.totalMileage = other.totalMileage;
 
   Refueling copyWith(
-      {int carId,
-      double exchangeRate,
-      int fuelTypeId,
-      int fuelUnitId,
-      int tripMileage,
-      String note,
-      double pricePerUnit,
-      double quantity,
-      DateTime timestamp}) {
+      {int? carId,
+      double? exchangeRate,
+      int? fuelTypeId,
+      int? fuelUnitId,
+      int? tripMileage,
+      String? note,
+      double? pricePerUnit,
+      double? quantity,
+      DateTime? timestamp}) {
     return Refueling.copy(this,
         carId: carId,
         exchangeRate: exchangeRate,
@@ -112,7 +112,7 @@ class Refueling {
         timestamp: timestamp);
   }
 
-  Refueling.deserialize(Map<String, Object> json)
+  Refueling.deserialize(Map<String, dynamic> json)
       : carId = json[CAR_ID],
         exchangeRate = json[EXCHANGE_RATE],
         fuelTypeId = json[FUEL_TYPE_ID],
@@ -123,7 +123,7 @@ class Refueling {
         timestamp = DateTime.fromMillisecondsSinceEpoch(json[TIMESTAMP]),
         fuelUnitId = json[FUEL_UNIT_ID];
 
-  Map<String, Object> serialize() => {
+  Map<String, Object?> serialize() => {
         CAR_ID: carId,
         EXCHANGE_RATE: exchangeRate,
         FUEL_TYPE_ID: fuelTypeId,
@@ -135,11 +135,11 @@ class Refueling {
         FUEL_UNIT_ID: fuelUnitId
       };
 
-  static int serializeTimestamp(DateTime time) {
-    return time.millisecondsSinceEpoch;
+  static int? serializeTimestamp(DateTime? time) {
+    return time?.millisecondsSinceEpoch;
   }
 
-  int get serializedTimestamp {
+  int? get serializedTimestamp {
     return serializeTimestamp(timestamp);
   }
 }
