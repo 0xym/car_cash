@@ -6,7 +6,7 @@ import 'package:carsh/widgets/number_form.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../l10n/localization.dart';
-import '../model/refueling.dart';
+import '../model/expenditure.dart';
 import '../model/preferences.dart';
 import '../providers/refuelings.dart';
 import '../utils/common.dart';
@@ -27,7 +27,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _prefs = Preferences();
   get _homeCurency => _prefs.get(CURRENCY);
   RefuelingAdapter? _refuelingAdapter;
-  Refueling? _oldRefueling;
+  Expenditure? _oldRefueling;
   MileageType _mileageType = MileageType.Trip;
   bool _validationFailed = false;
   Refuelings? _refuelings;

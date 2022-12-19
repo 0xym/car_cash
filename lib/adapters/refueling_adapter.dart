@@ -10,7 +10,7 @@ import '../model/car.dart';
 import '../model/fuel_type.dart';
 import '../model/fuel_unit.dart';
 import '../model/preferences.dart';
-import '../model/refueling.dart';
+import '../model/expenditure.dart';
 
 enum PriceSet { Quantity, PricePerUnit, TotalPrice, None }
 
@@ -19,7 +19,7 @@ enum MileageType { Trip, Total }
 class RefuelingAdapter {
   // final _prefs = Preferences();
   final Localization _loc;
-  Refueling _refueling;
+  Expenditure _refueling;
   final Cars _cars;
   final FuelUnits _fuelUnits;
   final FuelTypes _fuelTypes;
@@ -31,15 +31,16 @@ class RefuelingAdapter {
   PriceSet? _lastSet;
   PriceSet? _remainingSet;
 
-  RefuelingAdapter(BuildContext context, Refueling? refueling)
+  RefuelingAdapter(BuildContext context, Expenditure? refueling)
       : _loc = Localization.of(context),
         _cars = Provider.of(context, listen: false),
         _fuelTypes = Provider.of(context, listen: false),
         _fuelUnits = Provider.of(context, listen: false),
         _refueling = refueling ??
-            Refueling(
+            Expenditure(
                 carId: Preferences().get(DEFAULT_CAR),
-                timestamp: DateTime.now()) {
+                timestamp: DateTime.now(),
+                expenditureType: ExpenditureType.Refueling) {
     if (refueling?.totalPrice != null) {
       _totalPrice = refueling!.totalPrice;
       //TODO - move it to settings
@@ -88,7 +89,7 @@ class RefuelingAdapter {
       bool? tripMileage,
       bool? pricePerUnit,
       bool? quantity}) {
-    _refueling = Refueling.nullify(_refueling,
+    _refueling = Expenditure.nullify(_refueling,
         exchangeRate: exchangeRate,
         tripMileage: tripMileage,
         pricePerUnit: pricePerUnit,
@@ -290,8 +291,8 @@ class RefuelingAdapter {
   int _getFuelIndex(int? fuelId) =>
       _car!.fuelTypes.indexWhere((i) => i.type == fuelId);
   int get _carFuelIndex => _getFuelIndex(_refueling.fuelTypeId);
-  Refueling get() => _refueling;
-  String? get mileageUnitString => _loc.ttr(_car?.distanceUnit?.abbreviated());
+  Expenditure get() => _refueling;
+  String get mileageUnitString => _loc.ttr(_car.distanceUnit?.abbreviated());
   double get pricePerUnitInHomeCurrency =>
       _refueling.pricePerUnit! * _refueling.exchangeRate!;
   double get totalPriceInHomeCurrency =>

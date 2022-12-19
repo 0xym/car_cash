@@ -1,7 +1,7 @@
 import 'package:carsh/adapters/refueling_adapter.dart';
 import 'package:carsh/adapters/total_mileage_counter.dart';
 import 'package:flutter/material.dart';
-import '../model/refueling.dart';
+import '../model/expenditure.dart';
 import '../utils/db_access.dart';
 import './cars.dart';
 
@@ -13,15 +13,16 @@ class SorroundingRefuelingData {
 }
 
 class Refuelings extends ChangeNotifier {
-  static const TABLE_NAME = 'refuelings';
+  static const TABLE_NAME = 'expenditures';
   static bool _dbCreationSubscribed = false;
 
-  List<Refueling>? _items;
+  List<Expenditure>? _refuelings;
+  List<Expenditure>? _items;//non refuelings - todo
   Refuelings() {
     if (!_dbCreationSubscribed) {
       _dbCreationSubscribed = true;
       DbAccess.addOnCreateCommand(
-          'CREATE TABLE $TABLE_NAME${Refueling.dbLayout}');
+          'CREATE TABLE $TABLE_NAME${Expenditure.dbLayout}');
     }
   }
 
@@ -29,28 +30,28 @@ class Refuelings extends ChangeNotifier {
       index != null && index >= 0 && index < _items!.length;
   bool isMovedToFuture({required int prevIdx, required int nextIdx}) =>
       nextIdx < prevIdx;
-  Refueling? itemAtIndex(int index) =>
-      _isIndexValid(index) ? _items![index] : null;
-  int get itemCount => _items!.length;
+  Expenditure? itemAtIndex(int index) =>
+      _isIndexValid(index) ? _refuelings![index] : null;
+  int get itemCount => _refuelings!.length;
   // Refueling lastOfCar(int id) => _items.firstWhere((i) => i.carId == id);
-  int _previousRefuelingIndex(Refueling refueling) {
+  int _previousRefuelingIndex(Expenditure refueling) {
     //TODO - use binary search
-    final idx = _items!
+    final idx = _refuelings!
         .indexWhere((item) => item.timestamp!.isBefore(refueling.timestamp!));
-    return idx == -1 ? _items!.length : idx;
+    return idx == -1 ? _refuelings!.length : idx;
   }
 
-  int previousRefuelingIndexOfCar(Refueling refueling) {
+  int previousRefuelingIndexOfCar(Expenditure refueling) {
     final idx = _previousRefuelingIndex(refueling);
     return idx == _items!.length
         ? -1
-        : _items!.indexWhere((item) => item.carId == refueling.carId, idx);
+        : _refuelings!.indexWhere((item) => item.carId == refueling.carId, idx);
   }
 
-  int _nextRefuelingIndex(Refueling refueling) =>
+  int _nextRefuelingIndex(Expenditure refueling) =>
       _items!.lastIndexWhere((item) => item.timestamp!
           .isAfter(refueling.timestamp!)); // TODO - use binary search
-  int nextRefuelingIndexOfCar(Refueling refueling, {int? hint}) {
+  int nextRefuelingIndexOfCar(Expenditure refueling, {int? hint}) {
     final idx = hint ?? _nextRefuelingIndex(refueling);
     final getNext = (int index) =>
         _items!.lastIndexWhere((item) => item.carId == refueling.carId, index);
@@ -62,19 +63,19 @@ class Refuelings extends ChangeNotifier {
   }
 
   SorroundingRefuelingData sorouningRefuelingData(
-      Refueling refueling, int initial) {
+      Expenditure refueling, int initial) {
     var prev = initial;
     int next = prev;
-    for (var idx = _items!.length - 1; idx >= 0; --idx) {
-      if (_items![idx].carId == refueling.carId) {
-        if (_items![idx].timestamp!.isAfter(refueling.timestamp!)) {
+    for (var idx = _refuelings!.length - 1; idx >= 0; --idx) {
+      if (_refuelings![idx].carId == refueling.carId) {
+        if (_refuelings![idx].timestamp!.isAfter(refueling.timestamp!)) {
           return SorroundingRefuelingData(
-              prev, next + _items![idx].tripMileage!, idx);
-        } else if (_items![idx].timestamp!.isBefore(refueling.timestamp!)) {
-          prev += _items![idx].tripMileage!;
+              prev, next + _refuelings![idx].tripMileage!, idx);
+        } else if (_refuelings![idx].timestamp!.isBefore(refueling.timestamp!)) {
+          prev += _refuelings![idx].tripMileage!;
           next = prev;
         } else {
-          next += _items![idx].tripMileage!;
+          next += _refuelings![idx].tripMileage!;
         }
       }
     }
@@ -93,44 +94,46 @@ class Refuelings extends ChangeNotifier {
   }*/
 
   Future<void> fetchRefuelings(Cars cars) async {
-    if (_items != null) {
+    if (_refuelings != null) {
       return;
     }
     await cars.fetchCars();
     final dataList =
-        await DbAccess.getData(TABLE_NAME, orderBy: Refueling.TIMESTAMP);
+        await DbAccess.getData(TABLE_NAME, orderBy: Expenditure.TIMESTAMP);
     List<DateTime> toRemove = [];
-    final checkRemove = (Refueling i) {
+    final checkRemove = (Expenditure i) {
       if (cars.keys!.contains(i.carId)) {
         return false;
       }
       toRemove.add(i.timestamp!);
       return true;
     };
-    _items = dataList.map((item) => Refueling.deserialize(item)).toList()
+    _items = dataList.map((item) => Expenditure.deserialize(item)).toList();
+    _refuelings = _items.where((element) => element.expenditureType == ExpenditureType.Refueling).toList()
       ..removeWhere(checkRemove);
+    _items.removeWhere((element) => element.expenditureType == ExpenditureType.Refueling);
     TotalMileageCounter mileageCounter =
         TotalMileageCounter(cars.initialMileages);
-    _items!.forEach((refueling) => mileageCounter.updateRefueling(refueling));
-    _items = _items!.reversed.toList();
+    _refuelings!.forEach((refueling) => mileageCounter.updateRefueling(refueling));
+    _refuelings = _refuelings!.reversed.toList();
     _deleteRefuelings(toRemove);
   }
 
-  Future<void> _addRefueling(Refueling refueling) async {
+  Future<void> _addRefueling(Expenditure refueling) async {
     final idx = _previousRefuelingIndex(refueling);
     if (idx > 0 &&
-        _items![idx - 1].timestamp!.isAtSameMomentAs(refueling.timestamp!)) {
-      _items![idx - 1] = refueling;
+        _refuelings![idx - 1].timestamp!.isAtSameMomentAs(refueling.timestamp!)) {
+      _refuelings![idx - 1] = refueling;
       DbAccess.update(TABLE_NAME, refueling.serialize(), Refueling.TIMESTAMP,
           refueling.serializedTimestamp);
     } else {
-      _items!.insert(idx, refueling);
+      _refuelings!.insert(idx, refueling);
       DbAccess.insert(TABLE_NAME, refueling.serialize());
     }
   }
 
   Future<void> clear() async {
-    _items = [];
+    _refuelings = [];
     notifyListeners();
     DbAccess.delete(TABLE_NAME, null, null);
   }
@@ -139,18 +142,18 @@ class Refuelings extends ChangeNotifier {
     if (timestamp == null) {
       return;
     }
-    _items!.removeWhere((item) =>
+    _refuelings!.removeWhere((item) =>
         item.timestamp!.millisecondsSinceEpoch ==
         timestamp.millisecondsSinceEpoch);
-    DbAccess.delete(TABLE_NAME, Refueling.TIMESTAMP,
-        Refueling.serializeTimestamp(timestamp));
+    DbAccess.delete(TABLE_NAME, Expenditure.TIMESTAMP,
+        Expenditure.serializeTimestamp(timestamp));
   }
 
   Future<void> _deleteRefuelings(List<DateTime> timestamps) async {
     timestamps.forEach((t) => _deleteRefueling(t));
   }
 
-  Future<void> deleteRefuelingAndExtendNext(Refueling? oldRefueling) async {
+  Future<void> deleteRefuelingAndExtendNext(Expenditure? oldRefueling) async {
     final nextOfOld =
         oldRefueling == null ? -1 : nextRefuelingIndexOfCar(oldRefueling);
     _updateRefuelingTripMileage(nextOfOld,
@@ -160,17 +163,17 @@ class Refuelings extends ChangeNotifier {
   }
 
   Future<void> deleteRefuelingAndReduceTotalMileage(
-      Refueling oldRefueling, RefuelingAdapter refuelingAdapter) async {
+      Expenditure oldRefueling, RefuelingAdapter refuelingAdapter) async {
     _deleteRefueling(oldRefueling.timestamp);
     _recalculateTotalMileage(oldRefueling.carId,
         refuelingAdapter.getCarInitialMileage(oldRefueling.carId!)!);
     notifyListeners();
   }
 
-  Future<void> updateRefueling(Refueling? oldRefueling,
+  Future<void> updateRefueling(Expenditure? oldRefueling,
       RefuelingAdapter refuelingAdapter, MileageType mileageType) async {
     DateTime? timestamp = oldRefueling?.timestamp;
-    Refueling refueling = refuelingAdapter.get();
+    Expenditure refueling = refuelingAdapter.get();
     if (refueling.timestamp!.millisecondsSinceEpoch !=
         timestamp?.millisecondsSinceEpoch) {
       _deleteRefueling(timestamp);
@@ -192,21 +195,21 @@ class Refuelings extends ChangeNotifier {
       {int? increaseBy, int? decreaseBy}) async {
     final item = itemAtIndex(index);
     if (item != null) {
-      _items![index] = item.copyWith(
+      _refuelings![index] = item.copyWith(
           tripMileage:
               item.tripMileage! + (increaseBy ?? 0) - (decreaseBy ?? 0));
       DbAccess.update(
           TABLE_NAME,
-          {Refueling.MILEAGE: _items![index].tripMileage},
-          Refueling.TIMESTAMP,
-          Refueling.serializeTimestamp(item.timestamp));
+          {Expenditure.MILEAGE: _refuelings![index].tripMileage},
+          Expenditure.TIMESTAMP,
+          Expenditure.serializeTimestamp(item.timestamp));
     }
   }
 
   void _recalculateTotalMileage(int? carId, int initialCarMileage) {
     var total = initialCarMileage;
-    for (var i = _items!.length - 1; i >= 0; --i) {
-      final item = _items![i];
+    for (var i = _refuelings!.length - 1; i >= 0; --i) {
+      final item = _refuelings![i];
       if (item.carId == carId) {
         total += item.tripMileage!;
         item.totalMileage = total;
@@ -220,7 +223,7 @@ class Refuelings extends ChangeNotifier {
   }
 
   Future<void> saveRefuelingDistance(double? distance, MileageType mileageType,
-      Refueling? oldRefueling, RefuelingAdapter refuelingAdapter) async {
+      Expenditure? oldRefueling, RefuelingAdapter refuelingAdapter) async {
     if (mileageType == MileageType.Total) {
       final nextOfOld =
           oldRefueling == null ? -1 : nextRefuelingIndexOfCar(oldRefueling);

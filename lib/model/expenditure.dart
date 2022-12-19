@@ -1,21 +1,27 @@
 import '../utils/db_names.dart';
 
-class Refueling {
+enum ExpenditureType {//check whether using index of enum is a stable approach to serialization
+  Refueling,
+  OtherExpenditure,
+}
+
+class Expenditure { 
   //keys:
-  static const PRICE_PER_UNIT = 'pricePerUnit';
-  static const QUANTITY = 'quantity';
-  static const FUEL_UNIT_ID = 'fuelUnitId';
+  static const PRICE_PER_UNIT = 'pricePerUnit';//r
+  static const QUANTITY = 'quantity';//r
+  static const FUEL_UNIT_ID = 'fuelUnitId';//r
   static const MILEAGE = 'mileage';
   static const TIMESTAMP = 'timestamp';
-  static const FUEL_TYPE_ID = 'fuelTypeId';
+  static const FUEL_TYPE_ID = 'fuelTypeId';//r
   static const EXCHANGE_RATE = 'exchangeRate';
   static const CURRENCY = 'currency';
-  static const DISCOUNT = 'discount';
-  static const DISCOUNT_TYPE = 'discount_type';
-  //shouldn't costType be moved to the expenditure?
+  static const DISCOUNT_VALUE = 'discount_value';
+  static const DISCOUNT_TYPE = 'discount_type';//percent,amount,pricePerUnit
   static const COST_TYPE = 'cost_type'; //timeDependent or distanceDependeent
   static const NOTE = 'note';
   static const CAR_ID = 'carId';
+  static const EXPENDITURE_TYPE = 'expenditure_type'; //refueling or other cost
+  //todo - add partial refueling marker
 
   final double? pricePerUnit;
   final double? quantity; //in SI unit of a given UnitType
@@ -27,16 +33,18 @@ class Refueling {
   final double? exchangeRate;
   final String? note;
   final int? carId;
+  final ExpenditureType expenditureType;
 
   double? get totalPrice => (pricePerUnit == null || quantity == null)
       ? null
       : quantity! * pricePerUnit!;
 
   static String get dbLayout {
-    return '($TIMESTAMP $INT $PRIMARY_KEY, $CAR_ID $INT, $EXCHANGE_RATE $REAL, $FUEL_TYPE_ID $INT, $MILEAGE $INT, $NOTE $TEXT, $PRICE_PER_UNIT $REAL, $QUANTITY REAL, $FUEL_UNIT_ID INT)';
+    var x = ExpenditureType.Refueling.toString();
+    return '($TIMESTAMP $INT $PRIMARY_KEY, $CAR_ID $INT, $EXCHANGE_RATE $REAL, $FUEL_TYPE_ID $INT, $MILEAGE $INT, $NOTE $TEXT, $PRICE_PER_UNIT $REAL, $QUANTITY $REAL, $FUEL_UNIT_ID $INT, $EXPENDITURE_TYPE $INT)';
   }
 
-  Refueling(
+  Expenditure(
       {this.carId = -1,
       this.exchangeRate = 1.0,
       this.fuelTypeId,
@@ -46,9 +54,11 @@ class Refueling {
       this.pricePerUnit,
       this.quantity,
       this.timestamp,
-      this.fuelUnitId});
+      this.fuelUnitId,
+      this.expenditureType});
 
-  Refueling.copy(Refueling other,
+<<<<<<< HEAD:lib/model/refueling.dart
+  Expenditure.copy(Expenditure other,
       {int? carId,
       double? exchangeRate,
       int? fuelTypeId,
@@ -57,7 +67,8 @@ class Refueling {
       String? note,
       double? pricePerUnit,
       double? quantity,
-      DateTime? timestamp})
+      DateTime? timestamp,
+      ExpenditureType? expenditureType})
       : this.carId = carId ?? other.carId,
         this.exchangeRate = exchangeRate ?? other.exchangeRate,
         this.fuelTypeId = fuelTypeId ?? other.fuelTypeId,
@@ -67,9 +78,10 @@ class Refueling {
         this.pricePerUnit = pricePerUnit ?? other.pricePerUnit,
         this.quantity = quantity ?? other.quantity,
         this.timestamp = timestamp ?? other.timestamp,
+        this.expenditureType = expenditureType ?? other.expenditureType,
         this.totalMileage = other.totalMileage;
 
-  Refueling.nullify(Refueling other,
+  Expenditure.nullify(Expenditure other,
       {bool? carId,
       bool? exchangeRate,
       bool? fuelTypeId,
@@ -88,9 +100,10 @@ class Refueling {
         this.pricePerUnit = pricePerUnit == true ? null : other.pricePerUnit,
         this.quantity = quantity == true ? null : other.quantity,
         this.timestamp = timestamp == true ? null : other.timestamp,
+        this.expenditureType = other.expenditureType,
         this.totalMileage = other.totalMileage;
 
-  Refueling copyWith(
+  Expenditure copyWith(
       {int? carId,
       double? exchangeRate,
       int? fuelTypeId,
@@ -99,8 +112,9 @@ class Refueling {
       String? note,
       double? pricePerUnit,
       double? quantity,
-      DateTime? timestamp}) {
-    return Refueling.copy(this,
+      DateTime? timestamp}),
+      ExpenditureType? expenditureType}) {
+    return Expenditure.copy(this,
         carId: carId,
         exchangeRate: exchangeRate,
         fuelTypeId: fuelTypeId,
@@ -109,10 +123,11 @@ class Refueling {
         note: note,
         pricePerUnit: pricePerUnit,
         quantity: quantity,
-        timestamp: timestamp);
+        timestamp: timestamp,
+        expenditureType: expenditureType);
   }
 
-  Refueling.deserialize(Map<String, dynamic> json)
+  Expenditure.deserialize(Map<String, dynamic> json)
       : carId = json[CAR_ID],
         exchangeRate = json[EXCHANGE_RATE],
         fuelTypeId = json[FUEL_TYPE_ID],
@@ -121,7 +136,8 @@ class Refueling {
         pricePerUnit = json[PRICE_PER_UNIT],
         quantity = json[QUANTITY],
         timestamp = DateTime.fromMillisecondsSinceEpoch(json[TIMESTAMP]),
-        fuelUnitId = json[FUEL_UNIT_ID];
+        fuelUnitId = json[FUEL_UNIT_ID],
+        expenditureType = ExpenditureType.values[json[EXPENDITURE_TYPE]];
 
   Map<String, Object?> serialize() => {
         CAR_ID: carId,
@@ -132,7 +148,8 @@ class Refueling {
         PRICE_PER_UNIT: pricePerUnit,
         QUANTITY: quantity,
         TIMESTAMP: serializedTimestamp,
-        FUEL_UNIT_ID: fuelUnitId
+        FUEL_UNIT_ID: fuelUnitId,
+        EXPENDITURE_TYPE : expenditureType.index
       };
 
   static int? serializeTimestamp(DateTime? time) {
