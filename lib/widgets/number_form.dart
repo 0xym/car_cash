@@ -6,7 +6,7 @@ const DEFAULT_PRECISION = 2;
 class NumberForm extends StatelessWidget {
   final void Function(String) onSaved;
   final void Function() onEditingComplete;
-  final String Function(double) valueToText;
+  final String Function(double?) valueToText;
   final String? Function(String?) validate;
   final String labelText;
   final TextEditingController _controller;
@@ -14,7 +14,7 @@ class NumberForm extends StatelessWidget {
   final FocusHandler focusHandler;
 
   NumberForm(
-      {required double initialValue,
+      {required double? initialValue,
       required this.valueToText,
       required this.onSaved,
       required this.onEditingComplete,

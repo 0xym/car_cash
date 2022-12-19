@@ -86,12 +86,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               title: Text(loc.tr('deleteRefuelingQuestion')),
               content: Text(loc.tr('deleteRefuelingDetails')),
               actions: <Widget>[
-                FlatButton(
+                TextButton(
                   child: Text(loc.tr('extendNextAction')),
                   onPressed: executeActionAndClose(() =>
                       _refuelings?.deleteRefuelingAndExtendNext(_oldRefueling)),
                 ),
-                FlatButton(
+                TextButton(
                   child: Text(loc.tr('reduceTotalAction')),
                   onPressed: executeActionAndClose(() =>
                       _refuelings?.deleteRefuelingAndReduceTotalMileage(
@@ -102,7 +102,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   }
 
   NumberForm _makeNumberForm(
-          {required double initialValue,
+          {required double? initialValue,
           required PriceSet Function(String) onSaved,
           required String labelText,
           bool keepTrailingZeros = true,
@@ -153,26 +153,26 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       _focusHandler = FocusHandler(_saveRefueling);
       _refuelings = Provider.of<Refuelings>(context, listen: false);
       _refuelingAdapter =
-          ModalRoute.of(context)!.settings.arguments as RefuelingAdapter;
+          ModalRoute.of(context)!.settings.arguments as RefuelingAdapter?;
       _oldRefueling = _refuelingAdapter?.get();
       _refuelingAdapter ??= RefuelingAdapter(context, null);
       _validator ??= DataValidator(context);
       _cars = Provider.of<Cars>(context);
       _pricePerUnitForm = _makeNumberForm(
-          initialValue: _refuelingAdapter!.get().pricePerUnit!,
+          initialValue: _refuelingAdapter!.get().pricePerUnit,
           onSaved: (value) =>
               _refuelingAdapter!.setPricePerUnit(toDouble(value)),
           labelText: localization.tr('pricePerUnit'));
       _focusHandler!.make(_pricePerUnitForm!.focusNode,
           () => _refuelingAdapter!.get().pricePerUnit != null);
       _quantityForm = _makeNumberForm(
-          initialValue: _refuelingAdapter!.get().quantity!,
+          initialValue: _refuelingAdapter!.get().quantity,
           onSaved: (value) => _refuelingAdapter!.setQuantity(toDouble(value)),
           labelText: localization.tr('quantity'));
       _focusHandler!.make(_quantityForm!.focusNode,
           () => _refuelingAdapter!.get().quantity != null);
       _totalPriceForm = _makeNumberForm(
-          initialValue: _refuelingAdapter!.get().totalPrice!,
+          initialValue: _refuelingAdapter!.get().totalPrice,
           onSaved: (value) => _refuelingAdapter!.setTotalPrice(toDouble(value)),
           labelText: localization.tr('totalPrice'));
       _focusHandler!.make(_totalPriceForm!.focusNode,

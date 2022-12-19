@@ -74,13 +74,13 @@ class _AddCarScreenState extends State<AddCarScreen> {
   void _saveForm() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      final cars = Provider.of<Cars>(context);
+      final cars = Provider.of<Cars>(context, listen: false);
       final oldMileage = cars.get(_car!.id)?.initialMileage;
       final requestUpdate =
           (oldMileage != null) && (oldMileage != _car!.initialMileage);
       cars.addCar(_car!..sanitize());
       if (requestUpdate) {
-        Provider.of<Refuelings>(context)
+        Provider.of<Refuelings>(context, listen: false)
             .recalculateTotalMileage(_car!.id!, _car!.initialMileage!);
       }
       if (widget._asMainScreen) {
@@ -98,11 +98,11 @@ class _AddCarScreenState extends State<AddCarScreen> {
         builder: (ctx) => AlertDialog(
               title: Text(loc.tr('deleteCarConfirmation')),
               actions: <Widget>[
-                FlatButton(
+                TextButton(
                   child: Text(loc.tr('cancelAction')),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
-                FlatButton(
+                TextButton(
                   child: Text(loc.tr('deleteAction')),
                   onPressed: () {
                     Provider.of<Cars>(context).delete(_car!.id!);

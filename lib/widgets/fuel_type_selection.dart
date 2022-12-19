@@ -56,7 +56,7 @@ class FuelTypeSelectionWidget extends StatelessWidget {
               IconButton(
                 icon: Icon(Icons.remove_circle),
                 onPressed: () => onDeleted?.call(fuelIndex),
-                color: Theme.of(context).accentColor,
+                color: Theme.of(context).secondaryHeaderColor,
               ),
           ],
         ),
