@@ -30,6 +30,10 @@
 .pub-cache/
 .pub/
 /build/
+pubspeck.lock
+
+# some genrated files
+/windows/flutter/generated*
 
 # Web related
 lib/generated_plugin_registrant.dart
