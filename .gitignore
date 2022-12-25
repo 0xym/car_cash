@@ -30,7 +30,7 @@
 .pub-cache/
 .pub/
 /build/
-pubspeck.lock
+pubspec.lock
 
 # some genrated files
 /windows/flutter/generated*

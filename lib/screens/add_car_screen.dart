@@ -57,17 +57,17 @@ class _AddCarScreenState extends State<AddCarScreen> {
   }
 
   void _fuelTypeChanged(int index, int fuelType, int fuelUnit) {
-    if ((_car?.fuelTypes[index].type != fuelType) ||
-        (_car?.fuelTypes[index].unit != fuelUnit)) {
-      final fuelTypes = _car!.fuelTypes;
-      fuelTypes[index] = FuelTypeAndUnit(fuelType, fuelUnit);
+    if ((_car?.fuelTanks[index].type != fuelType) ||
+        (_car?.fuelTanks[index].unit != fuelUnit)) {
+      final fuelTypes = _car!.fuelTanks;
+      fuelTypes[index] = FuelTank(fuelType, fuelUnit, null); //TODO - add fuel capacity selection
       setState(() => _car = _car!.copyWith(fuelTypes: fuelTypes));
     }
   }
 
   void _deleteFuelType(int index) {
     setState(() {
-      _car = _car!.copyWith(fuelTypes: _car!.fuelTypes..removeAt(index));
+      _car = _car!.copyWith(fuelTypes: _car!.fuelTanks..removeAt(index));
     });
   }
 
@@ -238,24 +238,24 @@ class _AddCarScreenState extends State<AddCarScreen> {
                     InputDecoration(labelText: loc.tr('initialMileage')),
               ),
               ...List<Widget>.generate(
-                  _car!.fuelTypes.length,
+                  _car!.fuelTanks.length,
                   (idx) => FuelTypeSelectionWidget(
                         fuelIndex: idx,
-                        selectedType: _car!.fuelTypes[idx].type,
-                        selectedUnit: _car!.fuelTypes[idx].unit,
+                        selectedType: _car!.fuelTanks[idx].type,
+                        selectedUnit: _car!.fuelTanks[idx].unit,
                         onChange: _fuelTypeChanged,
                         onDeleted:
-                            _car!.fuelTypes.length > 1 ? _deleteFuelType : null,
+                            _car!.fuelTanks.length > 1 ? _deleteFuelType : null,
                       )),
-              if (_car!.fuelTypes.length < Car.MAX_FUEL_TYPES)
+              if (_car!.fuelTanks.length < Car.MAX_FUEL_TYPES)
                 IconButton(
                   icon: Icon(Icons.add_circle),
                   color: Theme.of(context).primaryColor,
                   tooltip: loc.tr('addFuelType'),
                   onPressed: () {
                     setState(() => _car = _car!.copyWith(
-                        fuelTypes: _car!.fuelTypes
-                          ..add(FuelTypeAndUnit(null, null))));
+                        fuelTypes: _car!.fuelTanks
+                          ..add(FuelTank(null, null, null))));
                     _scrollDownRequested = ScrollRequestState.Init;
                   },
                 ),

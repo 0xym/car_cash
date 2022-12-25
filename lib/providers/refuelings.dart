@@ -99,7 +99,7 @@ class Refuelings extends ChangeNotifier {
     }
     await cars.fetchCars();
     final dataList =
-        await DbAccess.getData(TABLE_NAME, orderBy: Expenditure.TIMESTAMP);
+        await DbAccess.getData(TABLE_NAME, orderBy: ExpenditureDbKeys.timestamp.name);
     List<DateTime> toRemove = [];
     final checkRemove = (Expenditure i) {
       if (cars.keys!.contains(i.carId)) {
@@ -124,7 +124,7 @@ class Refuelings extends ChangeNotifier {
     if (idx > 0 &&
         _refuelings![idx - 1].timestamp!.isAtSameMomentAs(refueling.timestamp!)) {
       _refuelings![idx - 1] = refueling;
-      DbAccess.update(TABLE_NAME, refueling.serialize(), Expenditure.TIMESTAMP,
+      DbAccess.update(TABLE_NAME, refueling.serialize(), ExpenditureDbKeys.timestamp.name,
           refueling.serializedTimestamp);
     } else {
       _refuelings!.insert(idx, refueling);
@@ -145,7 +145,7 @@ class Refuelings extends ChangeNotifier {
     _refuelings!.removeWhere((item) =>
         item.timestamp!.millisecondsSinceEpoch ==
         timestamp.millisecondsSinceEpoch);
-    DbAccess.delete(TABLE_NAME, Expenditure.TIMESTAMP,
+    DbAccess.delete(TABLE_NAME, ExpenditureDbKeys.timestamp.name,
         Expenditure.serializeTimestamp(timestamp));
   }
 
@@ -200,8 +200,8 @@ class Refuelings extends ChangeNotifier {
               item.tripMileage! + (increaseBy ?? 0) - (decreaseBy ?? 0));
       DbAccess.update(
           TABLE_NAME,
-          {Expenditure.MILEAGE: _refuelings![index].tripMileage},
-          Expenditure.TIMESTAMP,
+          {ExpenditureDbKeys.mileage.name: _refuelings![index].tripMileage},
+          ExpenditureDbKeys.timestamp.name,
           Expenditure.serializeTimestamp(item.timestamp));
     }
   }

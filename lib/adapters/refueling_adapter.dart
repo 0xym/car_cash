@@ -103,10 +103,10 @@ class RefuelingAdapter {
   void _sanitizeFuelInfo() {
     if (!isFuelTypeValid()) {
       set(
-          fuelTypeId: _car?.fuelTypes[0].type,
-          fuelUnitId: _car?.fuelTypes[0].unit);
+          fuelTypeId: _car?.fuelTanks[0].type,
+          fuelUnitId: _car?.fuelTanks[0].unit);
     } else if (!isFuelUnitValid()) {
-      set(fuelUnitId: _car?.fuelTypes[_carFuelIndex].unit);
+      set(fuelUnitId: _car?.fuelTanks[_carFuelIndex].unit);
     }
   }
 
@@ -119,8 +119,8 @@ class RefuelingAdapter {
     final fuelIdx = _getFuelIndex(id);
     final idx = fuelIdx < 0 ? 0 : fuelIdx;
     set(
-        fuelTypeId: _car?.fuelTypes[idx].type,
-        fuelUnitId: _car?.fuelTypes[idx].unit);
+        fuelTypeId: _car?.fuelTanks[idx].type,
+        fuelUnitId: _car?.fuelTanks[idx].unit);
   }
 
   void setTripMileage(double? value) {
@@ -289,7 +289,7 @@ class RefuelingAdapter {
   double? get displayedTotalMileage =>
       displayedDistance(_refueling.totalMileage);
   int _getFuelIndex(int? fuelId) =>
-      _car!.fuelTypes.indexWhere((i) => i.type == fuelId);
+      _car!.fuelTanks.indexWhere((i) => i.type == fuelId);
   int get _carFuelIndex => _getFuelIndex(_refueling.fuelTypeId);
   Expenditure get() => _refueling;
   String get mileageUnitString => _loc.ttr(_car?.distanceUnit?.abbreviated());
@@ -302,7 +302,7 @@ class RefuelingAdapter {
   FuelType? get fuelType => _fuelType;
   FuelUnit? get fuelUnit => _fuelUnit;
   List<FuelType?>? get fuelTypes =>
-      _car?.fuelTypes.map((i) => _fuelTypes.get(i.type)).toList();
+      _car?.fuelTanks.map((i) => _fuelTypes.get(i.type)).toList();
   List<FuelUnit> get fuelUnits =>
       _fuelUnits.where(_fuelUnit!.unitType).toList();
   int? getCarInitialMileage(int? carId) => _cars.get(carId)?.initialMileage;
