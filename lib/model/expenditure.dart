@@ -55,9 +55,8 @@ class Expenditure {
       this.quantity,
       this.timestamp,
       this.fuelUnitId,
-      this.expenditureType});
+      this.expenditureType = ExpenditureType.Refueling});
 
-<<<<<<< HEAD:lib/model/refueling.dart
   Expenditure.copy(Expenditure other,
       {int? carId,
       double? exchangeRate,
@@ -112,7 +111,7 @@ class Expenditure {
       String? note,
       double? pricePerUnit,
       double? quantity,
-      DateTime? timestamp}),
+      DateTime? timestamp,
       ExpenditureType? expenditureType}) {
     return Expenditure.copy(this,
         carId: carId,

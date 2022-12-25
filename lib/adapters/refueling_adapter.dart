@@ -292,7 +292,7 @@ class RefuelingAdapter {
       _car!.fuelTypes.indexWhere((i) => i.type == fuelId);
   int get _carFuelIndex => _getFuelIndex(_refueling.fuelTypeId);
   Expenditure get() => _refueling;
-  String get mileageUnitString => _loc.ttr(_car.distanceUnit?.abbreviated());
+  String get mileageUnitString => _loc.ttr(_car?.distanceUnit?.abbreviated());
   double get pricePerUnitInHomeCurrency =>
       _refueling.pricePerUnit! * _refueling.exchangeRate!;
   double get totalPriceInHomeCurrency =>

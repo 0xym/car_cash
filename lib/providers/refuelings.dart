@@ -109,9 +109,9 @@ class Refuelings extends ChangeNotifier {
       return true;
     };
     _items = dataList.map((item) => Expenditure.deserialize(item)).toList();
-    _refuelings = _items.where((element) => element.expenditureType == ExpenditureType.Refueling).toList()
+    _refuelings = _items!.where((element) => element.expenditureType == ExpenditureType.Refueling).toList()
       ..removeWhere(checkRemove);
-    _items.removeWhere((element) => element.expenditureType == ExpenditureType.Refueling);
+    _items!.removeWhere((element) => element.expenditureType == ExpenditureType.Refueling);
     TotalMileageCounter mileageCounter =
         TotalMileageCounter(cars.initialMileages);
     _refuelings!.forEach((refueling) => mileageCounter.updateRefueling(refueling));
@@ -124,7 +124,7 @@ class Refuelings extends ChangeNotifier {
     if (idx > 0 &&
         _refuelings![idx - 1].timestamp!.isAtSameMomentAs(refueling.timestamp!)) {
       _refuelings![idx - 1] = refueling;
-      DbAccess.update(TABLE_NAME, refueling.serialize(), Refueling.TIMESTAMP,
+      DbAccess.update(TABLE_NAME, refueling.serialize(), Expenditure.TIMESTAMP,
           refueling.serializedTimestamp);
     } else {
       _refuelings!.insert(idx, refueling);
