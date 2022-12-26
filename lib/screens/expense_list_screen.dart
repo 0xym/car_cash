@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../l10n/localization.dart';
 import '../screens/add_expense_screen.dart';
 import '../screens/car_list_screen.dart';
-import '../providers/refuelings.dart';
+import '../providers/expenditures.dart';
 import '../providers/cars.dart';
 import '../widgets/expense_item.dart';
 
@@ -26,13 +26,13 @@ class ExpenseListScreen extends StatelessWidget {
         ],
       ),
       body: FutureBuilder(
-        future: Provider.of<Refuelings>(context)
-            .fetchRefuelings(Provider.of<Cars>(context)),
+        future: Provider.of<Expenditures>(context)
+            .fetchExpenditures(Provider.of<Cars>(context)),
         builder: (ctx, data) => data.connectionState == ConnectionState.waiting
             ? Center(
                 child: CircularProgressIndicator(),
               )
-            : Consumer<Refuelings>(
+            : Consumer<Expenditures>(
                 builder: (ctx, refuelings, child) => ListView.builder(
                   itemCount: refuelings.itemCount,
                   itemBuilder: (c, idx) => ExpenseItem(

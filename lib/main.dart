@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'routes.dart';
-import './providers/refuelings.dart';
+import 'providers/expenditures.dart';
 import './providers/fuel_types.dart';
 import './providers/fuel_units.dart';
 import './providers/cars.dart';
@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
                     value: Cars(),
                   ),
                   ChangeNotifierProvider.value(
-                    value: Refuelings(),
+                    value: Expenditures(),
                   ),
                 ],
                 child: MaterialApp(

@@ -1,4 +1,4 @@
-import 'package:carsh/providers/refuelings.dart';
+import 'package:carsh/providers/expenditures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -258,7 +258,7 @@ class RefuelingAdapter {
   }
 
 //TODO - continue moving here (better use member functions)
-  void updateTimestamp(DateTime timestamp, Refuelings refuelings,
+  void updateTimestamp(DateTime timestamp, Expenditures refuelings,
       MileageType mileageType, int? oldRefuelingTripMileage) {
     if (timestamp.isAtSameMomentAs(get().timestamp!)) {
       return;

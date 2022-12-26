@@ -61,6 +61,8 @@ class Expenditure {
   final CostType costType;
   final double? fillLevel;
 
+  bool timestampMatches(DateTime otherTimestamp) => timestamp!.millisecondsSinceEpoch == otherTimestamp.millisecondsSinceEpoch;
+
   double? get totalPrice => (pricePerUnit == null || quantity == null)
       ? null
       : quantity! * pricePerUnit!;

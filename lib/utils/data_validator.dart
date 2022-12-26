@@ -1,6 +1,6 @@
 import 'package:carsh/adapters/refueling_adapter.dart';
 import 'package:carsh/l10n/localization.dart';
-import 'package:carsh/providers/refuelings.dart';
+import 'package:carsh/providers/expenditures.dart';
 import 'package:flutter/cupertino.dart';
 
 import '../l10n/localization.dart';
@@ -34,7 +34,7 @@ class DataValidator {
   }
 
   String? validateRefuelingDistance(String? value, MileageType mileageType,
-      RefuelingAdapter refuelingAdapter, Refuelings refuelings) {
+      RefuelingAdapter refuelingAdapter, Expenditures refuelings) {
     final thisIsFirstRefueling =
         refuelings.previousRefuelingIndexOfCar(refuelingAdapter.get()) == -1;
     final preValidation = thisIsFirstRefueling

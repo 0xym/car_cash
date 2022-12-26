@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 import '../l10n/localization.dart';
 import '../model/expenditure.dart';
 import '../model/preferences.dart';
-import '../providers/refuelings.dart';
+import '../providers/expenditures.dart';
 import '../utils/common.dart';
 import '../utils/global_preferences.dart';
 import '../adapters/refueling_adapter.dart';
@@ -30,7 +30,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   Expenditure? _oldRefueling;
   MileageType _mileageType = MileageType.Trip;
   bool _validationFailed = false;
-  Refuelings? _refuelings;
+  Expenditures? _refuelings;
   DataValidator? _validator;
   Cars? _cars;
   NumberForm? _pricePerUnitForm;
@@ -151,7 +151,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     final localization = Localization.of(context);
     if (_refuelingAdapter == null) {
       _focusHandler = FocusHandler(_saveRefueling);
-      _refuelings = Provider.of<Refuelings>(context, listen: false);
+      _refuelings = Provider.of<Expenditures>(context, listen: false);
       _refuelingAdapter =
           ModalRoute.of(context)!.settings.arguments as RefuelingAdapter?;
       _oldRefueling = _refuelingAdapter?.get();

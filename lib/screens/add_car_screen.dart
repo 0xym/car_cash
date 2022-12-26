@@ -5,7 +5,7 @@ import '../model/car.dart';
 import '../widgets/fuel_type_selection.dart';
 import '../utils/common.dart';
 import '../providers/cars.dart';
-import '../providers/refuelings.dart';
+import '../providers/expenditures.dart';
 import '../model/distance.dart';
 
 class AddCarScreen extends StatefulWidget {
@@ -80,7 +80,7 @@ class _AddCarScreenState extends State<AddCarScreen> {
           (oldMileage != null) && (oldMileage != _car!.initialMileage);
       cars.addCar(_car!..sanitize());
       if (requestUpdate) {
-        Provider.of<Refuelings>(context, listen: false)
+        Provider.of<Expenditures>(context, listen: false)
             .recalculateTotalMileage(_car!.id!, _car!.initialMileage!);
       }
       if (widget._asMainScreen) {
